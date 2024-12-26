@@ -4,11 +4,10 @@ import { asyncHandler } from '../middleware/asyncHandler.js';
 import cloudinary from 'cloudinary';
 import { getPublicIdFromUrl } from '../utils/feauters.js';
 
-export const createRaffle = asyncHandler(async (req, res) => {
+export const createRaffle = asyncHandler(async (req, res, next) => {
     const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice } = req.body;
     const createdBy = req.user.id;
     const photo = req.file
-
     if (!photo) return next(new CustomError("Please add Photo", 400));
 
     if (!name || !type || !launchDate || !drawDate || !totalEntriesAllowed || !ticketPrice) {
