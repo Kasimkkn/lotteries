@@ -13,7 +13,7 @@ const router = express.Router();
 
 router
     .route('/')
-    .get(protect, authorize('admin', 'agent'), getAllRaffles)
+    .get(protect, getAllRaffles)
     .post(protect, singleUpload, authorize('agent', 'admin'), createRaffle);
 
 router

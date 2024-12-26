@@ -77,7 +77,7 @@ function Sidebar({
 
         {/* Links */}
         <ul className={`flex flex-col gap-5 ${sidebarExpanded ? "items-start" : ""}`}>
-          <li >
+          <li>
             <Link to={"/dashboard-home"}
               className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("home") ? "" : "hover:text-gray-900 dark:hover:text-white"
                 }`}
@@ -92,7 +92,7 @@ function Sidebar({
 
             </Link>
           </li>
-          <li className=" ">
+          <li>
             <Link to={"/dashboard-user"}
               className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("user") ? "" : "hover:text-gray-900 dark:hover:text-white"
                 }`}
@@ -107,18 +107,46 @@ function Sidebar({
 
             </Link>
           </li>
-          <li >
+          <li>
             <Link to={"/dashboard-lottery"}
               className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("lottery") ? "" : "hover:text-gray-900 dark:hover:text-white"
                 }`}
             >
               <svg className={`shrink-0 fill-current ${pathname.includes("lottery") ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500'}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M7.586 9H1a1 1 0 1 1 0-2h6.586L6.293 5.707a1 1 0 0 1 1.414-1.414l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 1 1-1.414-1.414L7.586 9ZM3.075 4.572a1 1 0 1 1-1.64-1.144 8 8 0 1 1 0 9.144 1 1 0 0 1 1.64-1.144 6 6 0 1 0 0-6.856Z"></path>
+                <path d="M5 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H5Z"></path>
+                <path d="M4 0a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V4a4 4 0 0 0-4-4H4ZM2 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Z"></path>
               </svg>
               <span className="text-sm font-medium lg:hidden lg:sidebar-expanded:block 2xl:block duration-200">
                 Add Lottery
               </span>
 
+            </Link>
+          </li>
+          <li>
+            <Link to={"/dashboard-ticket"}
+              className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("lottery") ? "" : "hover:text-gray-900 dark:hover:text-white"
+                }`}
+            >
+              <svg className={`shrink-0 fill-current ${pathname.includes("ticket") ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500'}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M7.586 9H1a1 1 0 1 1 0-2h6.586L6.293 5.707a1 1 0 0 1 1.414-1.414l3 3a1 1 0 0 1 0 1.414l-3 3a1 1 0 1 1-1.414-1.414L7.586 9ZM3.075 4.572a1 1 0 1 1-1.64-1.144 8 8 0 1 1 0 9.144 1 1 0 0 1 1.64-1.144 6 6 0 1 0 0-6.856Z"></path>
+              </svg>
+              <span className="text-sm font-medium lg:hidden lg:sidebar-expanded:block 2xl:block duration-200">
+                Tickets
+              </span>
+
+            </Link>
+          </li>
+          <li>
+            <Link to={"/dashboard-transaction"}
+              className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("lottery") ? "" : "hover:text-gray-900 dark:hover:text-white"
+                }`}
+            >
+              <svg className={`shrink-0 fill-current ${pathname.includes("transaction") ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500'}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M.06 10.003a1 1 0 0 1 1.948.455c-.019.08.01.152.078.19l5.83 3.333c.053.03.116.03.168 0l5.83-3.333a.163.163 0 0 0 .078-.188 1 1 0 0 1 1.947-.459 2.161 2.161 0 0 1-1.032 2.384l-5.83 3.331a2.168 2.168 0 0 1-2.154 0l-5.83-3.331a2.162 2.162 0 0 1-1.032-2.382Zm7.856-7.981-5.83 3.332a.17.17 0 0 0 0 .295l5.828 3.33c.054.031.118.031.17.002l5.83-3.333a.17.17 0 0 0 0-.294L8.085 2.023a.172.172 0 0 0-.17-.001ZM9.076.285l5.83 3.332c1.458.833 1.458 2.935 0 3.768l-5.83 3.333c-.667.38-1.485.38-2.153-.001l-5.83-3.332c-1.457-.833-1.457-2.935 0-3.767L6.925.285a2.173 2.173 0 0 1 2.15 0Z"></path>
+              </svg>
+              <span className="text-sm font-medium lg:hidden lg:sidebar-expanded:block 2xl:block duration-200">
+                Transaction
+              </span>
             </Link>
           </li>
         </ul>

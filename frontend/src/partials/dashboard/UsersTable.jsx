@@ -9,7 +9,6 @@ function UsersTable({ data, onViewClick, onDeleteClick }) {
         <h2 className="font-semibold text-gray-800 dark:text-gray-100">Users</h2>
       </header>
       <div className="p-3">
-
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="table-auto w-full">
@@ -100,7 +99,6 @@ function UsersTable({ data, onViewClick, onDeleteClick }) {
           </table>
 
         </div>
-
       </div>
     </div>
   );

@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import AddButton from '../components/AddButton';
 import AdminLayout from '../components/AdminLayout/AdminLayout';
-import UsersCard from '../partials/dashboard/UsersCard';
-import UsersTable from '../partials/dashboard/UsersTable';
-import { createUser, deleteUser, getAllUsers, updateUser } from '../service/apiServices';
 import ConfirmModal from '../components/ConfirmModal';
-import toast from 'react-hot-toast';
 import Modal from '../components/Modal';
+import UsersTable from '../partials/dashboard/UsersTable';
+import WidgetCard from '../partials/dashboard/WidgetCard';
+import { createUser, deleteUser, getAllUsers, updateUser } from '../service/apiServices';
 
 function DashboardUsers() {
     const [loading, setLoading] = useState(false);
@@ -97,6 +97,7 @@ function DashboardUsers() {
                 fetchUsers();
             }
         } catch (error) {
+            toast.error('Failed to add user', error);
             console.error('Error adding user:', error);
         } finally {
             toggleModal('addUser', false);
@@ -110,13 +111,11 @@ function DashboardUsers() {
 
     return (
         <AdminLayout>
-            <div className="sm:flex sm:justify-between sm:items-center mb-8">
-                <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Users</h1>
+            <div className="absolute top-4 right-4">
                 <AddButton title="Add User" onClick={() => toggleModal('addUser', true)} />
             </div>
-
             <div className="grid grid-cols-12 gap-6">
-                <UsersCard title="Total Users" totalusers={users.length} />
+                <WidgetCard title="Total Users" totalusers={users.length} />
                 <UsersTable
                     data={users}
                     onViewClick={(user) => toggleModal('viewUser', true, user)}
@@ -167,13 +166,14 @@ function DashboardUsers() {
                     <div className="grid grid-cols-2 gap-5">
                         {['username', 'password', 'role', 'balance'].map((field) => (
                             <div key={field} className="flex flex-col gap-2">
-                                <span className="font-semibold">
+                                {/* <span className="font-semibold">
                                     {field.charAt(0).toUpperCase() + field.slice(1)}
-                                </span>
+                                </span> */}
                                 <input
                                     className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                     name={field}
                                     value={formData.new[field] || ''}
+                                    placeholder={field}
                                     onChange={(e) => handleInputChange(e, 'new')}
                                 />
                             </div>

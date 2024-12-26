@@ -1,73 +1,251 @@
-import React from 'react';
-
+import React, { useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import AddButton from '../components/AddButton';
 import AdminLayout from '../components/AdminLayout/AdminLayout';
-import Datepicker from '../components/Datepicker';
-import FilterButton from '../components/DropdownFilter';
-import DashboardCard04 from '../partials/dashboard/DashboardCard04';
-import DashboardCard05 from '../partials/dashboard/DashboardCard05';
-import DashboardCard06 from '../partials/dashboard/DashboardCard06';
-import DashboardCard07 from '../partials/dashboard/DashboardCard07';
-import DashboardCard08 from '../partials/dashboard/DashboardCard08';
-import DashboardCard09 from '../partials/dashboard/DashboardCard09';
-import DashboardCard11 from '../partials/dashboard/DashboardCard11';
-import DashboardCard12 from '../partials/dashboard/DashboardCard12';
-import DashboardCard13 from '../partials/dashboard/DashboardCard13';
-import UsersCard from '../partials/dashboard/UsersCard';
-import UsersTable from '../partials/dashboard/UsersTable';
+import ConfirmModal from '../components/ConfirmModal';
+import Modal from '../components/Modal';
+import RafflesTable from '../components/RafflesTable';
+import WidgetCard from '../partials/dashboard/WidgetCard';
+import { createRaffle, deleteRaffle, getAllRaffles, updateRaffle } from '../service/apiServices';
 
 function DashboardLottery() {
+    const [loading, setLoading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState({ delete: false, addRaffle: false, viewRaffle: false });
+    const [modalData, setModalData] = useState({ raffleIdToDelete: null, viewRaffleData: null });
+    const [raffles, setRaffles] = useState([]);
+    const [formData, setFormData] = useState({ new: {}, update: {} });
+
+    const fetchRaffles = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await getAllRaffles();
+            if (response.success) {
+                setRaffles(response.raffles);
+            }
+        } catch (error) {
+            console.error('Error fetching raffles:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const toggleModal = (type, isOpen, data = null) => {
+        setIsModalOpen((prev) => ({ ...prev, [type]: isOpen }));
+        if (type === 'delete') {
+            setModalData((prev) => ({ ...prev, raffleIdToDelete: data }));
+        } else if (type === 'viewRaffle') {
+            setModalData((prev) => ({ ...prev, viewRaffleData: data }));
+            setFormData((prev) => ({ ...prev, update: data || {} }));
+        }
+    };
+
+    const handleInputChange = (e, type) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [type]: { ...prev[type], [name]: value } }));
+    };
+
+    const handleDeleteRaffle = async () => {
+        const { raffleIdToDelete } = modalData;
+        if (!raffleIdToDelete) return;
+        setLoading(true);
+        try {
+            const response = await deleteRaffle(raffleIdToDelete);
+            if (response.success) {
+                toast.success('Raffle deleted successfully');
+                fetchRaffles();
+            }
+        } catch {
+            toast.error('Failed to delete raffle');
+        } finally {
+            toggleModal('delete', false);
+            setLoading(false);
+        }
+    };
+
+    const handleFileChange = (e, type) => {
+        const { name, files } = e.target;
+        if (files && files.length > 0) {
+            setFormData((prev) => ({
+                ...prev,
+                [type]: { ...prev[type], [name]: files[0] },
+            }));
+        }
+    };
+
+
+    const handleUpdateRaffle = async () => {
+        const { viewRaffleData } = modalData;
+        const { update } = formData;
+        if (!viewRaffleData) return;
+        const formDataObj = new FormData();
+
+        // Append fields to FormData
+        formDataObj.append("name", update.name);
+        formDataObj.append("type", update.type);
+        formDataObj.append("launchDate", update.launchDate);
+        formDataObj.append("drawDate", update.drawDate);
+        formDataObj.append("totalEntriesAllowed", update.totalEntriesAllowed);
+        formDataObj.append("ticketPrice", update.ticketPrice);
+        formDataObj.append("photo", update.photo); // Ensure this is a File object
+        setLoading(true);
+        try {
+            const response = await updateRaffle(viewRaffleData._id, formDataObj);
+            if (response.success) {
+                toast.success('Raffle updated successfully');
+                fetchRaffles();
+            }
+        } catch (error) {
+            console.error('Error updating raffle:', error);
+        } finally {
+            toggleModal('viewRaffle', false);
+            setLoading(false);
+        }
+    };
+
+    // Handle new raffle creation
+    const handleAddRaffle = async () => {
+        const { new: raffle } = formData;
+        const formDataObj = new FormData();
+
+        // Append fields to FormData
+        formDataObj.append("name", raffle.name);
+        formDataObj.append("type", raffle.type);
+        formDataObj.append("launchDate", raffle.launchDate);
+        formDataObj.append("drawDate", raffle.drawDate);
+        formDataObj.append("totalEntriesAllowed", raffle.totalEntriesAllowed);
+        formDataObj.append("ticketPrice", raffle.ticketPrice);
+        formDataObj.append("photo", raffle.photo); // Ensure this is a File object
+
+        setLoading(true);
+
+        try {
+            const response = await createRaffle(formDataObj);
+            if (response.success) {
+                toast.success("Raffle added successfully");
+                fetchRaffles();
+            }
+        } catch (error) {
+            toast.error(error.message || "Failed to add raffle");
+            console.error("Error adding raffle:", error);
+        } finally {
+            toggleModal("addRaffle", false);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRaffles();
+    }, [fetchRaffles]);
 
     return (
         <AdminLayout>
-            {/* Dashboard actions */}
-            <div className="sm:flex sm:justify-between sm:items-center mb-8">
-
-                {/* Left: Title */}
-                <div className="mb-4 sm:mb-0">
-                    <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Lotteries</h1>
-                </div>
-
-                {/* Right: Actions */}
-                <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-                    {/* Filter button */}
-                    <FilterButton align="right" />
-                    {/* Datepicker built with React Day Picker */}
-                    <Datepicker align="right" />
-                    {/* Add view button */}
-                    <button className="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white">
-                        <svg className="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
-                            <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-                        </svg>
-                        <span className="max-xs:sr-only">Add View</span>
-                    </button>
-                </div>
-
+            <div className="absolute top-4 right-4">
+                <AddButton title="Add Raffle" onClick={() => toggleModal('addRaffle', true)} />
             </div>
-            {/* Cards */}
+
             <div className="grid grid-cols-12 gap-6">
-                <UsersCard title={'Total Users'} totalusers={10} />
-                {/* Bar chart (Direct vs Indirect) */}
-                <DashboardCard04 />
-                {/* Line chart (Real Time Value) */}
-                <DashboardCard05 />
-                {/* Doughnut chart (Top Countries) */}
-                <DashboardCard06 />
-                {/* Table (Top Channels) */}
-                <DashboardCard07 />
-                {/* Line chart (Sales Over Time) */}
-                <DashboardCard08 />
-                {/* Stacked bar chart (Sales VS Refunds) */}
-                <DashboardCard09 />
-                {/* Card (Customers) */}
-                <UsersTable />
-                {/* Card (Reasons for Refunds) */}
-                <DashboardCard11 />
-                {/* Card (Recent Activity) */}
-                <DashboardCard12 />
-                {/* Card (Income/Expenses) */}
-                <DashboardCard13 />
-
+                <WidgetCard title="Total Raffles" totalusers={raffles.length} />
+                <RafflesTable
+                    data={raffles}
+                    onViewClick={(raffle) => toggleModal('viewRaffle', true, raffle)}
+                    onDeleteClick={(id) => toggleModal('delete', true, id)}
+                />
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmModal
+                isOpen={isModalOpen.delete}
+                message="Are you sure you want to delete this raffle?"
+                onConfirm={handleDeleteRaffle}
+                onCancel={() => toggleModal('delete', false)}
+            />
+
+            {/* View/Edit Raffle Modal */}
+            {isModalOpen.viewRaffle && modalData.viewRaffleData && (
+                <Modal
+                    onClose={() => toggleModal('viewRaffle', false)}
+                    title={`Raffle Details`}
+                    width="max-w-3xl"
+                >
+                    <div className="grid grid-cols-2 gap-5">
+                        {['name', 'type', 'launchDate', 'drawDate', 'totalEntriesAllowed', 'ticketPrice', 'photo'].map((field) => (
+                            <div key={field} className="flex flex-col gap-2">
+                                <span className="font-semibold">
+                                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                                </span>
+                                {field === 'photo' ? (
+                                    <input
+                                        type="file"
+                                        className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                        name={field}
+                                        onChange={(e) => handleFileChange(e, 'update')}
+                                    />
+                                ) : field === 'launchDate' || field === 'drawDate' ? (
+                                    <input
+                                        type="date"
+                                        className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                        name={field}
+                                        value={formData.update[field] || ''}
+                                        onChange={(e) => handleInputChange(e, 'update')}
+                                    />
+                                ) : (
+                                    <input
+                                        className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                        name={field}
+                                        value={formData.update[field] || ''}
+                                        onChange={(e) => handleInputChange(e, 'update')}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-end mt-5">
+                        <AddButton title="Update Raffle" onClick={handleUpdateRaffle} />
+                    </div>
+                </Modal>
+            )}
+
+            {/* Add New Raffle Modal */}
+            {isModalOpen.addRaffle && (
+                <Modal onClose={() => toggleModal('addRaffle', false)} title="Add New Raffle" width="max-w-3xl">
+                    <div className="grid grid-cols-2 gap-5">
+                        {['name', 'type', 'launchDate', 'drawDate', 'totalEntriesAllowed', 'ticketPrice', 'photo'].map((field) => (
+                            <div key={field} className="flex flex-col gap-2">
+                                <span className="font-semibold">
+                                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                                </span>
+                                {field === 'photo' ? (
+                                    <input
+                                        type="file"
+                                        className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                        name={field}
+                                        onChange={(e) => handleFileChange(e, 'new')}
+                                    />
+                                ) : field === 'launchDate' || field === 'drawDate' ? (
+                                    <input
+                                        type="date"
+                                        className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                        name={field}
+                                        value={formData.new[field] || ''}
+                                        onChange={(e) => handleInputChange(e, 'new')}
+                                    />
+                                ) : (
+                                    <input
+                                        className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                        name={field}
+                                        value={formData.new[field] || ''}
+                                        placeholder={field}
+                                        onChange={(e) => handleInputChange(e, 'new')}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-end mt-5">
+                        <AddButton title="Add Raffle" onClick={handleAddRaffle} />
+                    </div>
+                </Modal>
+            )}
 
         </AdminLayout>
     );

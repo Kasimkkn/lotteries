@@ -16,6 +16,8 @@ import Dashboard from './pages/Dashboard';
 import DashboardUsers from './pages/DashboardUsers';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import DashboardTickets from './pages/DashboardTickets';
+import DashboardTransaction from './pages/DashboardTransaction';
 
 // AuthRoute Component
 const AuthRoute = ({ children }) => {
@@ -63,6 +65,26 @@ function App() {
             <AuthRoute>
               <AdminOnlyRoute>
                 <DashboardLottery />
+              </AdminOnlyRoute>
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/dashboard-ticket"
+          element={
+            <AuthRoute>
+              <AdminOnlyRoute>
+                <DashboardTickets />
+              </AdminOnlyRoute>
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/dashboard-transaction"
+          element={
+            <AuthRoute>
+              <AdminOnlyRoute>
+                <DashboardTransaction />
               </AdminOnlyRoute>
             </AuthRoute>
           }
