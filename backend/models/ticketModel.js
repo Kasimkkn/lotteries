@@ -5,6 +5,7 @@ const TicketSchema = new mongoose.Schema({
     raffle: { type: mongoose.Schema.Types.ObjectId, ref: 'Raffle', required: true },
     selectedNumbers: { type: Number, required: true },
     price: { type: Number, required: true },
+    quantity: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -7,7 +7,6 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('lottery:token');
-        console.log('token', token);
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -18,7 +17,6 @@ apiClient.interceptors.request.use(
 
 const requestHandler = async (method, url, data = null) => {
     try {
-        console.log('method', method, 'url', url, 'data', data);
         let response
         if (data) {
             response = await apiClient({ method, url, data });

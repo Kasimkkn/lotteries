@@ -6,60 +6,90 @@ import { asyncHandler } from '../middleware/asyncHandler.js';
 import transactionModel from '../models/transactionModel.js';
 
 export const purchaseTicket = asyncHandler(async (req, res) => {
-    const { userId, raffleId, selectedNumbers } = req.body;
+    const { userId, raffleId, selectedNumbers, quantity } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) {
-        throw new CustomError('User not found', 404);
-    }
+    const [user, raffle] = await Promise.all([
+        User.findById(userId),
+        Raffle.findById(raffleId),
+    ]);
 
-    const raffle = await Raffle.findById(raffleId);
-    if (!raffle) {
-        throw new CustomError('Raffle not found', 404);
-    }
-
+    if (!user) throw new CustomError('User not found', 404);
+    if (!raffle) throw new CustomError('Raffle not found', 404);
     if (raffle.entrants >= raffle.totalEntriesAllowed) {
-        throw new CustomError('Raffle is full, no more entries allowed', 400);
+        return res.status(200).json({
+            success: true,
+            message: 'Raffle is full, no more entries allowed',
+        });
+    }
+    if (user.balance < raffle.ticketPrice) {
+        return res.status(200).json({
+            success: true,
+            message: 'Insufficient balance',
+        });
     }
 
-    const userTicketsCount = await Ticket.countDocuments({ user: userId, raffle: raffleId });
-    if (userTicketsCount >= 5) {
-        throw new CustomError('You can only purchase a maximum of 5 tickets for this raffle', 400);
+    const existingTicket = await Ticket.findOne({ user: userId, raffle: raffleId });
+
+    if (existingTicket) {
+        if (existingTicket.quantity >= 5) {
+            return res.status(200).json({
+                success: true,
+                message: 'You can only buy a maximum of 5 tickets per raffle',
+            });
+        }
+
+        await updateExistingTicket(existingTicket, user, raffle, quantity);
+        return res.status(200).json({
+            success: true,
+            message: 'Ticket quantity updated successfully',
+            ticket: existingTicket,
+            newBalance: user.balance,
+        });
     }
 
-    const ticketPrice = raffle.ticketPrice;
-
-    if (user.balance < ticketPrice) {
-        throw new CustomError('Insufficient balance to purchase ticket', 400);
-    }
-
-    const ticket = await Ticket.create({
+    const newTicket = await Ticket.create({
         user: userId,
         raffle: raffleId,
         selectedNumbers,
-        price: ticketPrice
+        quantity,
+        price: raffle.ticketPrice,
     });
 
-    user.balance -= ticketPrice;
-    await user.save();
-
-    raffle.entrants += 1;
-    await raffle.save();
-
-    await transactionModel.create({
-        user: userId,
-        amount: ticketPrice,
-        type: 'debit',
-        description: `Ticket purchase for raffle: ${raffle.name}`
-    });
+    await finalizeTransaction(user, raffle, quantity);
 
     res.status(201).json({
         success: true,
         message: 'Ticket purchased successfully',
-        ticket,
-        newBalance: user.balance
+        ticket: newTicket,
+        newBalance: user.balance,
     });
 });
+
+const updateExistingTicket = async (ticket, user, raffle, quantity) => {
+    ticket.quantity += quantity;
+    user.balance -= raffle.ticketPrice * quantity;
+    raffle.entrants += 1;
+
+    await Promise.all([ticket.save(), user.save(), raffle.save()]);
+    await createTransaction(user._id, raffle.ticketPrice, raffle.name);
+};
+
+const finalizeTransaction = async (user, raffle, quantity) => {
+    user.balance -= raffle.ticketPrice * quantity;
+    raffle.entrants += 1;
+
+    await Promise.all([user.save(), raffle.save()]);
+    await createTransaction(user._id, raffle.ticketPrice, raffle.name);
+};
+
+const createTransaction = async (userId, amount, raffleName) => {
+    await transactionModel.create({
+        user: userId,
+        amount,
+        type: 'debit',
+        description: `Ticket purchase for raffle: ${raffleName}`,
+    });
+};
 
 export const getTicketsByUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
