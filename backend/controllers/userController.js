@@ -40,17 +40,17 @@ export const login = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-        throw new CustomError('Username and password are required.', 400);
+        throw new CustomError('Username and password are required.', 200);
     }
 
     const user = await User.findOne({ username });
     if (!user) {
-        throw new CustomError('Invalid username or password.', 401);
+        throw new CustomError('Invalid username or password.', 200);
     }
 
     const isPasswordValid = password === user.password;
     if (!isPasswordValid) {
-        throw new CustomError('Invalid username or password.', 401);
+        throw new CustomError('Invalid username or password.', 200);
     }
 
     const token = generateToken(user._id);
@@ -63,6 +63,7 @@ export const login = asyncHandler(async (req, res) => {
             id: user._id,
             username: user.username,
             role: user.role,
+            balance: user.balance
         },
     });
 });

@@ -11,18 +11,21 @@ import './charts/ChartjsConfig';
 import './css/style.css';
 // Import page
 import AdminOnlyRoute from './components/AdminOnlyRoute/AdminOnlyRoute';
-import DashboardLottery from './pages/DashboardLottery';
 import Dashboard from './pages/Dashboard';
+import DashboardLottery from './pages/DashboardLottery';
+import DashboardTickets from './pages/DashboardTickets';
+import DashboardTransaction from './pages/DashboardTransaction';
 import DashboardUsers from './pages/DashboardUsers';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import DashboardTickets from './pages/DashboardTickets';
-import DashboardTransaction from './pages/DashboardTransaction';
+import MyTickets from './pages/MyTickets';
+import UserProfile from './pages/UserProfile';
 
 // AuthRoute Component
 const AuthRoute = ({ children }) => {
   const token = localStorage.getItem('lottery:token');
-  if (!token) {
+  const user = JSON.parse(localStorage.getItem('lottery:user'));
+  if (!token || !user) {
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -95,6 +98,22 @@ function App() {
           element={
             <AuthRoute>
               <Home />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/my-tickets"
+          element={
+            <AuthRoute>
+              <MyTickets />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <AuthRoute>
+              <UserProfile />
             </AuthRoute>
           }
         />
