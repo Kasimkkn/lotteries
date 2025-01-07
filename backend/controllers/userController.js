@@ -8,16 +8,16 @@ export const createUser = asyncHandler(async (req, res) => {
     const { username, password, role, balance, commissionPercentage } = req.body;
 
     if (!username || !password || !role) {
-        throw new CustomError('All fields are required: username, password, role.', 400);
+        throw new CustomError('All fields are required: username, password, role.', 200);
     }
 
     if (!['player', 'agent', 'admin'].includes(role)) {
-        throw new CustomError('Invalid role specified.', 400);
+        throw new CustomError('Invalid role specified.', 200);
     }
 
     const existingUser = await User.findOne({ username, role });
     if (existingUser) {
-        throw new CustomError(`Username already exists for the role: ${role}.`, 409);
+        throw new CustomError(`Username already exists for the role: ${role}.`, 200);
     }
 
 
@@ -78,6 +78,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 export const getUserById = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    console.log('id', id);
     const user = await User.findById(id);
     if (!user) {
         throw new CustomError('User not found.', 404);
@@ -106,9 +107,9 @@ export const updateUser = asyncHandler(async (req, res) => {
         user.role = role
     }
     if (balance !== undefined) {
-        if (user.role !== 'player') {
-            throw new CustomError('Balance can only be updated for players.', 400);
-        }
+        // if (user.role !== 'player') {
+        //     throw new CustomError('Balance can only be updated for players.', 200);
+        // }
         user.balance = balance;
         await transactionModel.create({
             user: id,

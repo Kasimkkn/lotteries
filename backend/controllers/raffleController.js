@@ -6,16 +6,27 @@ import { getPublicIdFromUrl } from '../utils/feauters.js';
 
 export const createRaffle = asyncHandler(async (req, res, next) => {
     const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice } = req.body;
+    let { numbers } = req.body;
+    console.log('Raw numbers:', numbers);
+
+    try {
+        numbers = JSON.parse(numbers);
+        if (!Array.isArray(numbers) || !numbers.every(num => typeof num === 'number')) {
+            throw new Error("Invalid numbers format");
+        }
+    } catch (error) {
+        return next(new CustomError("Invalid numbers provided. It must be an array of numbers.", 200));
+    }
     const createdBy = req.user.id;
     const photo = req.file
-    if (!photo) return next(new CustomError("Please add Photo", 400));
+    if (!photo) return next(new CustomError("Please add Photo", 200));
 
-    if (!name || !type || !launchDate || !drawDate || !totalEntriesAllowed || !ticketPrice) {
-        throw new CustomError('All fields are required.', 400);
+    if (!name || !type || !launchDate || !drawDate || !totalEntriesAllowed || !ticketPrice || !numbers.length > 0) {
+        throw new CustomError('All fields are required.', 200);
     }
 
     if (new Date(launchDate) >= new Date(drawDate)) {
-        throw new CustomError('Launch date must be before draw date.', 400);
+        throw new CustomError('Launch date must be before draw date.', 200);
     }
 
     const cloudinaryResponse = await cloudinary.v2.uploader.upload(photo.path, {
@@ -30,6 +41,7 @@ export const createRaffle = asyncHandler(async (req, res, next) => {
         drawDate,
         totalEntriesAllowed,
         ticketPrice,
+        numbers,
         createdBy,
         photo: cloudinaryResponse.secure_url,
     });
@@ -70,6 +82,16 @@ export const getRaffleById = asyncHandler(async (req, res) => {
 export const updateRaffle = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice, isApproved } = req.body;
+    let { numbers } = req.body;
+
+    try {
+        numbers = JSON.parse(numbers);
+        if (!Array.isArray(numbers) || !numbers.every(num => typeof num === 'number')) {
+            throw new Error("Invalid numbers format");
+        }
+    } catch (error) {
+        return next(new CustomError("Invalid numbers provided. It must be an array of numbers.", 200));
+    }
     const photo = req.file;
     if (!id) {
         throw new CustomError('Raffle ID is required.', 400);
@@ -94,6 +116,7 @@ export const updateRaffle = asyncHandler(async (req, res) => {
     if (type !== undefined) {
         raffle.type = type;
     }
+    if (numbers !== undefined) raffle.numbers = numbers;
     if (launchDate !== undefined) raffle.launchDate = launchDate;
     if (drawDate !== undefined) raffle.drawDate = drawDate;
     if (totalEntriesAllowed !== undefined) raffle.totalEntriesAllowed = totalEntriesAllowed;

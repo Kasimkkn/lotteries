@@ -4,6 +4,7 @@ const RaffleSchema = new mongoose.Schema({
     name: { type: String, required: true },
     type: { type: String, required: true },
     photo: { type: String, required: true },
+    numbers: { type: [Number], required: true },
     launchDate: { type: Date, required: true },
     drawDate: { type: Date, required: true },
     entrants: { type: Number, default: 0 },
