@@ -3,7 +3,7 @@ import HomeHeader from '../components/HomeHeader';
 import ProductCard from '../components/ProductCard';
 import ProductDetails from '../components/ProductDetails';
 import { getAllRaffles } from '../service/apiServices';
-
+import banner from '../images/banner.jpeg'
 const Home = () => {
     const [raffle, setRaffle] = useState([]);
     const [fullViewProduct, setFullViewProduct] = useState(null);
@@ -33,12 +33,12 @@ const Home = () => {
     return (
         <>
             <HomeHeader />
-            <div className={`text-white bg-black ${fullViewModal ? 'blur-sm' : ''}`}>
+            <div className={`text-white  ${fullViewModal ? 'blur-sm' : ''}`}>
 
                 {/* Main Banner */}
                 <div className="w-full h-[400px] relative">
                     <img
-                        src="https://tools-api.webcrumbs.org/image-placeholder/1200/400/money/1"
+                        src={banner}
                         alt="Main banner"
                         className="object-cover w-full h-full"
                     />

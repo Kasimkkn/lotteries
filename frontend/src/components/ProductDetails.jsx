@@ -67,7 +67,7 @@ const ProductDetails = ({ product, toggleFullViewModal }) => {
                             </h2>
                             <div className="mb-4">
                                 <h6 className="font-manrope font-semibold text-2xl mb-2">
-                                    Ticket Price: ₹{product.ticketPrice}
+                                    Ticket Price: ${product.ticketPrice}
                                 </h6>
                                 <p className="text-gray-300">
                                     Entrants: {product.entrants} / {product.totalEntriesAllowed}

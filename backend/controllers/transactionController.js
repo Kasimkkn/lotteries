@@ -46,6 +46,7 @@ export const getAllTransactions = asyncHandler(async (req, res) => {
 });
 
 export const getSingleTransaction = asyncHandler(async (req, res) => {
+    console.log('hitted this', req.params.id);
     const transaction = await Transaction.findById(req.params.id);
     if (!transaction) {
         throw new CustomError('Transaction not found', 404);
@@ -58,6 +59,7 @@ export const getSingleTransaction = asyncHandler(async (req, res) => {
 });
 
 export const getUserTransactions = asyncHandler(async (req, res) => {
+    console.log('req.user._id', req.user._id);
     const transactions = await Transaction.find({ user: req.user._id });
     res.status(200).json({
         success: true,

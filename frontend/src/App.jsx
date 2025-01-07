@@ -20,6 +20,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import UserProfile from './pages/UserProfile';
+import UserTransaction from './pages/UserTransaction';
 
 // AuthRoute Component
 const AuthRoute = ({ children }) => {
@@ -106,6 +107,14 @@ function App() {
           element={
             <AuthRoute>
               <MyTickets />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/transaction"
+          element={
+            <AuthRoute>
+              <UserTransaction />
             </AuthRoute>
           }
         />

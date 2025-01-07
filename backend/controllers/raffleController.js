@@ -53,7 +53,7 @@ export const createRaffle = asyncHandler(async (req, res, next) => {
     });
 });
 
-export const getAllRaffles = asyncHandler(async (req, res) => {
+export const getAllRaffles = asyncHandler(async (req, res, next) => {
     const raffles = await Raffle.find().populate('createdBy', 'username role');
     res.status(200).json({
         success: true,
@@ -79,27 +79,28 @@ export const getRaffleById = asyncHandler(async (req, res) => {
     });
 });
 
-export const updateRaffle = asyncHandler(async (req, res) => {
+export const updateRaffle = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice, isApproved } = req.body;
+    console.log('req.body', req.body);
     let { numbers } = req.body;
-
+    console.log('Raw numbers:', numbers);
     try {
         numbers = JSON.parse(numbers);
         if (!Array.isArray(numbers) || !numbers.every(num => typeof num === 'number')) {
-            throw new Error("Invalid numbers format");
+            throw new Error("Invalid numbers format", 200);
         }
     } catch (error) {
-        return next(new CustomError("Invalid numbers provided. It must be an array of numbers.", 200));
+        throw new CustomError("Invalid numbers provided. It must be an array of numbers.", 200);
     }
     const photo = req.file;
     if (!id) {
-        throw new CustomError('Raffle ID is required.', 400);
+        throw new CustomError('Raffle ID is required.', 200);
     }
 
     const raffle = await Raffle.findById(id);
     if (!raffle) {
-        throw new CustomError('Raffle not found.', 404);
+        throw new CustomError('Raffle not found.', 200);
     }
 
     if (photo) {

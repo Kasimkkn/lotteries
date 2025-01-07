@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import HomeHeader from "../components/HomeHeader";
 import user from '../images/user.jpeg'
-import { getUserById } from "../../../backend/controllers/userController";
+import { getUserById } from "../service/apiServices";
 const UserProfile = () => {
     const [userData, setUserData] = useState(null);
 

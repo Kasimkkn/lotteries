@@ -99,6 +99,9 @@ function DashboardLottery() {
                 toast.success('Raffle updated successfully');
                 fetchRaffles();
             }
+            else {
+                toast.error(response.message);
+            }
         } catch (error) {
             console.error('Error updating raffle:', error);
         } finally {
@@ -215,8 +218,8 @@ function DashboardLottery() {
                                                     name={field}
                                                     value={
                                                         Array.isArray(formData.update[field])
-                                                            ? formData.update[field].join(',') // Convert array to string for input value
-                                                            : formData.update[field] || '' // Use value as is
+                                                            ? formData.update[field].join(',')
+                                                            : formData.update[field] || ''
                                                     }
                                                     onChange={(e) => handleInputChange(e, 'update')}
                                                 />

@@ -40,10 +40,10 @@ const HomeHeader = () => {
                             </li>
                             <li>
                                 <Link
-                                    to="#"
+                                    to="/transaction"
                                     className="block py-2 pr-4 pl-3 text-white border-b md:border-0  md:p-0 "
                                 >
-                                    Competitions
+                                    Transaction
                                 </Link>
                             </li>
                             <li>
