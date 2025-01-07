@@ -7,6 +7,7 @@ import Modal from '../components/Modal';
 import UsersTable from '../partials/dashboard/UsersTable';
 import WidgetCard from '../partials/dashboard/WidgetCard';
 import { createUser, deleteUser, getAllUsers, updateUser } from '../service/apiServices';
+import Loader from '../components/Loader';
 
 function DashboardUsers() {
     const [loading, setLoading] = useState(false);
@@ -78,6 +79,9 @@ function DashboardUsers() {
                 toast.success('User updated successfully');
                 fetchUsers();
             }
+            else {
+                toast.error(response.message);
+            }
         } catch (error) {
             console.error('Error updating user:', error);
         } finally {
@@ -96,6 +100,9 @@ function DashboardUsers() {
                 toast.success('User added successfully');
                 fetchUsers();
             }
+            else {
+                toast.error(response.message);
+            }
         } catch (error) {
             toast.error('Failed to add user', error);
             console.error('Error adding user:', error);
@@ -111,78 +118,84 @@ function DashboardUsers() {
 
     return (
         <AdminLayout>
-            <div className="absolute top-4 right-4">
-                <AddButton title="Add User" onClick={() => toggleModal('addUser', true)} />
-            </div>
-            <div className="grid grid-cols-12 gap-6">
-                <WidgetCard title="Total Users" totalusers={users.length} />
-                <UsersTable
-                    data={users}
-                    onViewClick={(user) => toggleModal('viewUser', true, user)}
-                    onDeleteClick={(id) => toggleModal('delete', true, id)}
-                />
-            </div>
+            {loading ? (<Modal>
+                <Loader />
+            </Modal>) : (
+                <>
+                    <div className="absolute top-4 right-4">
+                        <AddButton title="Add User" onClick={() => toggleModal('addUser', true)} />
+                    </div>
+                    <div className="grid grid-cols-12 gap-6">
+                        <WidgetCard title="Total Users" totalusers={users.length} />
+                        <UsersTable
+                            data={users}
+                            onViewClick={(user) => toggleModal('viewUser', true, user)}
+                            onDeleteClick={(id) => toggleModal('delete', true, id)}
+                        />
+                    </div>
 
-            {/* Delete Confirmation Modal */}
-            <ConfirmModal
-                isOpen={isModalOpen.delete}
-                message="Are you sure you want to delete this user?"
-                onConfirm={handleDeleteUser}
-                onCancel={() => toggleModal('delete', false)}
-            />
+                    {/* Delete Confirmation Modal */}
+                    <ConfirmModal
+                        isOpen={isModalOpen.delete}
+                        message="Are you sure you want to delete this user?"
+                        onConfirm={handleDeleteUser}
+                        onCancel={() => toggleModal('delete', false)}
+                    />
 
-            {/* View/Edit User Modal */}
-            {isModalOpen.viewUser && modalData.viewUserData && (
-                <Modal
-                    onClose={() => toggleModal('viewUser', false)}
-                    title={`User Created On ${new Date(modalData.viewUserData.createdAt).toLocaleDateString('in-ID')}`}
-                    width="max-w-3xl"
-                >
-                    <div className="grid grid-cols-2 gap-5">
-                        {['username', 'role', 'balance'].map((field) => (
-                            <div key={field} className="flex flex-col gap-2">
-                                <span className="font-semibold">
-                                    {field.charAt(0).toUpperCase() + field.slice(1)}
-                                </span>
-                                <input
-                                    readOnly={formData.update["role"] === "admin"}
-                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                    name={field}
-                                    value={formData.update[field] || ''}
-                                    onChange={(e) => handleInputChange(e, 'update')}
-                                />
+                    {/* View/Edit User Modal */}
+                    {isModalOpen.viewUser && modalData.viewUserData && (
+                        <Modal
+                            onClose={() => toggleModal('viewUser', false)}
+                            title={`User Created On ${new Date(modalData.viewUserData.createdAt).toLocaleDateString('in-ID')}`}
+                            width="max-w-3xl"
+                        >
+                            <div className="grid grid-cols-2 gap-5">
+                                {['username', 'role', 'balance'].map((field) => (
+                                    <div key={field} className="flex flex-col gap-2">
+                                        <span className="font-semibold">
+                                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                                        </span>
+                                        <input
+                                            // readOnly={formData.update["role"] === "admin"}
+                                            className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                            name={field}
+                                            value={formData.update[field] || ''}
+                                            onChange={(e) => handleInputChange(e, 'update')}
+                                        />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-end mt-5">
-                        <AddButton title="Edit" onClick={handleUpdateUser} />
-                    </div>
-                </Modal>
-            )}
+                            <div className="flex justify-end mt-5">
+                                <AddButton title="Edit" onClick={handleUpdateUser} />
+                            </div>
+                        </Modal>
+                    )}
 
-            {/* Add New User Modal */}
-            {isModalOpen.addUser && (
-                <Modal onClose={() => toggleModal('addUser', false)} title="Add New User" width="max-w-3xl">
-                    <div className="grid grid-cols-2 gap-5">
-                        {['username', 'password', 'role', 'balance'].map((field) => (
-                            <div key={field} className="flex flex-col gap-2">
-                                {/* <span className="font-semibold">
+                    {/* Add New User Modal */}
+                    {isModalOpen.addUser && (
+                        <Modal onClose={() => toggleModal('addUser', false)} title="Add New User" width="max-w-3xl">
+                            <div className="grid grid-cols-2 gap-5">
+                                {['username', 'password', 'role', 'balance'].map((field) => (
+                                    <div key={field} className="flex flex-col gap-2">
+                                        {/* <span className="font-semibold">
                                     {field.charAt(0).toUpperCase() + field.slice(1)}
                                 </span> */}
-                                <input
-                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                    name={field}
-                                    value={formData.new[field] || ''}
-                                    placeholder={field}
-                                    onChange={(e) => handleInputChange(e, 'new')}
-                                />
+                                        <input
+                                            className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                            name={field}
+                                            value={formData.new[field] || ''}
+                                            placeholder={field}
+                                            onChange={(e) => handleInputChange(e, 'new')}
+                                        />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-end mt-5">
-                        <AddButton title="Add User" onClick={handleAddUser} />
-                    </div>
-                </Modal>
+                            <div className="flex justify-end mt-5">
+                                <AddButton title="Add User" onClick={handleAddUser} />
+                            </div>
+                        </Modal>
+                    )}
+                </>
             )}
         </AdminLayout>
     );

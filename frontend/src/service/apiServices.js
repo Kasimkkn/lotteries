@@ -1,32 +1,36 @@
-import axios from 'axios';
-
-const apiClient = axios.create({
-    baseURL: 'http://localhost:5000/api',
-});
-
-apiClient.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('lottery:token');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
+const baseURL = 'http://localhost:5000/api';
 
 const requestHandler = async (method, url, data = null) => {
     try {
-        let response
-        if (data) {
-            response = await apiClient({ method, url, data });
-        } else {
-            response = await apiClient({ method, url });
+        const token = localStorage.getItem('lottery:token');
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
-        return response.data;
+
+        const options = {
+            method: method.toUpperCase(),
+            headers: headers,
+        };
+
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(`${baseURL}${url}`, options);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'An error occurred');
+        }
+
+        return response.json();
     } catch (error) {
-        console.error(error.response?.data || error.message);
-        throw error.response?.data || error;
+        console.error(error.message);
+        throw error;
     }
 };
 

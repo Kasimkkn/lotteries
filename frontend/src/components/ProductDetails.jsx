@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { IoMdClose } from 'react-icons/io';
-import axios from 'axios'; // Assuming you're using Axios for API calls
 import { purchaseTicket } from '../service/apiServices';
 import toast from 'react-hot-toast';
 
 const ProductDetails = ({ product, toggleFullViewModal }) => {
     const userId = JSON.parse(localStorage.getItem('lottery:user')).id;
     const [selectedQuantity, setSelectedQuantity] = useState(1);
-    const [selectedNumber, setSelectedNumber] = useState(1);
+    const [selectedNumber, setSelectedNumber] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    console.log('product', product);
     const handleBuyNow = async (productId) => {
         setIsLoading(true);
-
+        if (!selectedNumber) return toast.error('Please select a number');
         try {
             const response = await purchaseTicket({
                 userId,
@@ -96,11 +96,19 @@ const ProductDetails = ({ product, toggleFullViewModal }) => {
                                     onChange={(e) => setSelectedNumber(Number(e.target.value))}
                                     className="dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                 >
-                                    {Array.from({ length: 49 }, (_, index) => (
-                                        <option key={index} value={index + 1}>
-                                            {index + 1}
+                                    {Array.isArray(product.numbers) && product.numbers.length > 0 ? product.numbers.map((val, index) => (
+                                        <option key={index} value={val}>
+                                            {val}
                                         </option>
-                                    ))}
+                                    )) : (
+                                        <>
+                                            {[1, 2, 3, 4, 5].map((q) => (
+                                                <option key={q} value={q}>
+                                                    {q}
+                                                </option>
+                                            ))}
+                                        </>
+                                    )}
                                 </select>
                             </div>
                             <div className="flex items-center gap-3">

@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from "react";
 import HomeHeader from "../components/HomeHeader";
 import user from '../images/user.jpeg'
+import { getUserById } from "../../../backend/controllers/userController";
 const UserProfile = () => {
     const [userData, setUserData] = useState(null);
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("lottery:user"));
-        setUserData(user);
+        const fetchUserData = async () => {
+            try {
+                const response = await getUserById(user.id);
+                console.log('response', response);
+                if (response.success) {
+                    setUserData(response.user);
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+
+        fetchUserData();
     }, []);
 
     const handlePasswordUpdate = () => {

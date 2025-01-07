@@ -1,13 +1,14 @@
 import React from 'react';
 
 const TicketsUi = ({ data, toggleModal }) => {
+    console.log('data', data);
     return (
         <div className="col-span-full dark:bg-gray-800 rounded-xl p-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {data?.map((ticket) => (
                     <div key={ticket._id} className="bg-white dark:bg-gray-900 p-4 shadow-sm rounded-xl">
                         <h3 className="font-semibold text-gray-700 dark:text-gray-300">
-                            {ticket.raffle.name}
+                            {ticket.raffle?.name}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             Selected Number: <b>{ticket.selectedNumbers}</b>

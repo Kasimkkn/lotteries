@@ -7,6 +7,7 @@ import TicketsUi from '../components/TicketsUi';
 import WidgetCard from '../partials/dashboard/WidgetCard';
 import { deleteTicket, getAllTransactions } from '../service/apiServices';
 import TransactionUi from '../components/TransactionUi';
+import Loader from '../components/Loader';
 
 function DashboardTransaction() {
     const [loading, setLoading] = useState(false);
@@ -62,18 +63,24 @@ function DashboardTransaction() {
 
     return (
         <AdminLayout>
-            <div className="grid grid-cols-12 gap-6">
-                <WidgetCard title="Total Transactions" totalusers={transactions.length} />
-                <TransactionUi data={transactions} toggleModal={toggleModal} />
-            </div>
+            {loading ? (<Modal>
+                <Loader />
+            </Modal>) : (
+                <>
+                    <div className="grid grid-cols-12 gap-6">
+                        <WidgetCard title="Total Transactions" totalusers={transactions.length} />
+                        <TransactionUi data={transactions} toggleModal={toggleModal} />
+                    </div>
 
-            {/* Delete Confirmation Modal */}
-            <ConfirmModal
-                isOpen={isModalOpen.delete}
-                message="Are you sure you want to delete this transactions?"
-                onConfirm={handleDeleteTransaction}
-                onCancel={() => toggleModal('delete', false)}
-            />
+                    {/* Delete Confirmation Modal */}
+                    <ConfirmModal
+                        isOpen={isModalOpen.delete}
+                        message="Are you sure you want to delete this transactions?"
+                        onConfirm={handleDeleteTransaction}
+                        onCancel={() => toggleModal('delete', false)}
+                    />
+                </>
+            )}
         </AdminLayout>
     );
 }

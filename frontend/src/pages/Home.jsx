@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import HomeHeader from '../components/HomeHeader';
-import ProductGrid from '../components/ProductCard';
-import { getAllRaffles } from '../service/apiServices';
 import ProductCard from '../components/ProductCard';
 import ProductDetails from '../components/ProductDetails';
+import { getAllRaffles } from '../service/apiServices';
 
 const Home = () => {
     const [raffle, setRaffle] = useState([]);
