@@ -1,5 +1,5 @@
-const UNIQUEID = "KAS963"
-
+const UNIQUEID = "ABC017"
+const isCookieApproved = localStorage.getItem("lottery:isCookieApproved");
 
 async function handleAcceptClick() {
   try {
@@ -13,14 +13,16 @@ async function handleAcceptClick() {
     if (response.ok) {
       const data = await response.json();
       console.log('data', data);
+      localStorage.setItem("lottery:isCookieApproved", true);
     }
     else {
-      console.error('error while updating status');
       const data = await response.json();
       console.log('error data', data);
     }
   } catch (error) {
     console.error('error while updating status', error);
+  } finally {
+    localStorage.setItem("lottery:isCookieApproved", false);
   }
   document.body.removeChild(document.getElementById("cookieModal"));
 }
@@ -36,15 +38,17 @@ async function handleDenyClick() {
     })
     if (response.ok) {
       const data = await response.json();
+      localStorage.setItem("lottery:isCookieApproved", false);
       console.log('data', data);
     }
     else {
-      console.error('error while updating status');
       const data = await response.json();
       console.log('error data', data);
     }
   } catch (error) {
     console.error('error while updating status', error);
+  } finally {
+    localStorage.setItem("lottery:isCookieApproved", false);
   }
   document.body.removeChild(document.getElementById("cookieModal"));
 }
@@ -144,4 +148,6 @@ function createCookieModal() {
 }
 
 // Show the modal on page load
-window.addEventListener("load", createCookieModal);
+if (!isCookieApproved) {
+  window.addEventListener("load", createCookieModal);
+}
