@@ -4,6 +4,7 @@ import CustomError from '../utils/CustomError.js';
 import { asyncHandler } from './asyncHandler.js';
 
 export const protect = asyncHandler(async (req, res, next) => {
+    console.log(`Protect middleware executed for route: ${req.path}`);
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {

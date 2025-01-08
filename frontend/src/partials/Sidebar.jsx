@@ -108,6 +108,21 @@ function Sidebar({
             </Link>
           </li>
           <li>
+            <Link to={"/dashboard-client"}
+              className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("user") ? "" : "hover:text-gray-900 dark:hover:text-white"
+                }`}
+            >
+              <svg className={`shrink-0 fill-current ${pathname === "/" || pathname.includes("user") ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500'}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M6 0a6 6 0 0 0-6 6c0 1.077.304 2.062.78 2.912a1 1 0 1 0 1.745-.976A3.945 3.945 0 0 1 2 6a4 4 0 0 1 4-4c.693 0 1.344.194 1.936.525A1 1 0 1 0 8.912.779 5.944 5.944 0 0 0 6 0Z"></path>
+                <path d="M10 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm-4 6a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"></path>
+              </svg>
+              <span className="text-sm font-medium lg:hidden lg:sidebar-expanded:block 2xl:block duration-200">
+                Clients
+              </span>
+
+            </Link>
+          </li>
+          <li>
             <Link to={"/dashboard-lottery"}
               className={`text-gray-800 gap-2 dark:text-gray-100 transition flex items-center duration-150 ${pathname.includes("lottery") ? "" : "hover:text-gray-900 dark:hover:text-white"
                 }`}

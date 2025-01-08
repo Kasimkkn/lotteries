@@ -21,6 +21,7 @@ import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import UserProfile from './pages/UserProfile';
 import UserTransaction from './pages/UserTransaction';
+import DashboardClient from './pages/DashboardClient';
 
 // AuthRoute Component
 const AuthRoute = ({ children }) => {
@@ -89,6 +90,16 @@ function App() {
             <AuthRoute>
               <AdminOnlyRoute>
                 <DashboardTransaction />
+              </AdminOnlyRoute>
+            </AuthRoute>
+          }
+        />
+        <Route
+          path="/dashboard-client"
+          element={
+            <AuthRoute>
+              <AdminOnlyRoute>
+                <DashboardClient />
               </AdminOnlyRoute>
             </AuthRoute>
           }

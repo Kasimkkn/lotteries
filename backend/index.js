@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes.js';
 import raffleRoutes from './routes/raffleRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
+import clientRoutes from './routes/clientRoutes.js';
 import { handleErrors } from './utils/CustomError.js';
 import User from './models/userModel.js';
 import cloudinary from 'cloudinary';
@@ -32,6 +33,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/raffles', raffleRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/clients', clientRoutes);
 // Error handling middleware
 app.use(handleErrors);
 

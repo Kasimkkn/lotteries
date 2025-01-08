@@ -3,29 +3,29 @@ import toast from 'react-hot-toast';
 import AddButton from '../components/AddButton';
 import AdminLayout from '../components/AdminLayout/AdminLayout';
 import ConfirmModal from '../components/ConfirmModal';
-import Modal from '../components/Modal';
-import UsersTable from '../partials/dashboard/UsersTable';
-import WidgetCard from '../partials/dashboard/WidgetCard';
-import { createUser, deleteUser, getAllUsers, updateUser } from '../service/apiServices';
 import Loader from '../components/Loader';
+import Modal from '../components/Modal';
+import ClientsTable from '../partials/dashboard/ClientsTable';
+import WidgetCard from '../partials/dashboard/WidgetCard';
+import { createClient, deleteClient, getAllClients, updateClient } from '../service/apiServices';
 
-function DashboardUsers() {
+function DashboardClient() {
     const [loading, setLoading] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState({ delete: false, addUser: false, viewUser: false });
-    const [modalData, setModalData] = useState({ userIdToDelete: null, viewUserData: null });
-    const [users, setUsers] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState({ delete: false, addClient: false, viewClient: false });
+    const [modalData, setModalData] = useState({ clientIdToDelete: null, viewClientData: null });
+    const [clients, setClient] = useState([]);
     const [formData, setFormData] = useState({ new: {}, update: {} });
 
-    // Fetch users from API
-    const fetchUsers = useCallback(async () => {
+    // Fetch clients from API
+    const fetchClient = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getAllUsers();
+            const response = await getAllClients();
             if (response.success) {
-                setUsers(response.users);
+                setClient(response.clients);
             }
         } catch (error) {
-            console.error('Error fetching users:', error);
+            console.error('Error fetching clients:', error);
         } finally {
             setLoading(false);
         }
@@ -35,9 +35,9 @@ function DashboardUsers() {
     const toggleModal = (type, isOpen, data = null) => {
         setIsModalOpen((prev) => ({ ...prev, [type]: isOpen }));
         if (type === 'delete') {
-            setModalData((prev) => ({ ...prev, userIdToDelete: data }));
-        } else if (type === 'viewUser') {
-            setModalData((prev) => ({ ...prev, viewUserData: data }));
+            setModalData((prev) => ({ ...prev, clientIdToDelete: data }));
+        } else if (type === 'viewClient') {
+            setModalData((prev) => ({ ...prev, viewClientData: data }));
             setFormData((prev) => ({ ...prev, update: data || {} }));
         }
     };
@@ -49,72 +49,75 @@ function DashboardUsers() {
     };
 
     // Handle user deletion
-    const handleDeleteUser = async () => {
-        const { userIdToDelete } = modalData;
-        if (!userIdToDelete) return;
+    const handleDeleteClient = async () => {
+        const { clientIdToDelete } = modalData;
+        if (!clientIdToDelete) return;
         setLoading(true);
         try {
-            const response = await deleteUser(userIdToDelete);
+            const response = await deleteClient(clientIdToDelete);
             if (response.success) {
-                toast.success('User deleted successfully');
-                fetchUsers();
+                toast.success('Client deleted successfully');
+                fetchClient();
+            }
+            else {
+                toast.error(response.message);
             }
         } catch {
-            toast.error('Failed to delete user');
+            toast.error('Failed to delete client');
         } finally {
             toggleModal('delete', false);
             setLoading(false);
         }
     };
 
-    // Handle user update
-    const handleUpdateUser = async () => {
-        const { viewUserData } = modalData;
+    // Handle Client update
+    const handleUpdateClient = async () => {
+        const { viewClientData } = modalData;
         const { update } = formData;
-        if (!viewUserData) return;
+        if (!viewClientData) return;
         setLoading(true);
         try {
-            const response = await updateUser(viewUserData._id, update);
+            const response = await updateClient(viewClientData._id, update);
             if (response.success) {
-                toast.success('User updated successfully');
-                fetchUsers();
+                toast.success('Client updated successfully');
+                fetchClient();
             }
             else {
                 toast.error(response.message);
             }
         } catch (error) {
-            console.error('Error updating user:', error);
+            console.error('Error updating Client:', error);
         } finally {
-            toggleModal('viewUser', false);
+            toggleModal('viewClient', false);
             setLoading(false);
         }
     };
 
-    // Handle new user creation
-    const handleAddUser = async () => {
-        const { new: newUser } = formData;
+    // Handle new Client creation
+    const handleAddClient = async () => {
+        const { new: newClient } = formData;
         setLoading(true);
         try {
-            const response = await createUser(newUser);
+            const response = await createClient(newClient);
             if (response.success) {
-                toast.success('User added successfully');
-                fetchUsers();
+                toast.success('Client added successfully');
+                fetchClient();
             }
             else {
                 toast.error(response.message);
             }
         } catch (error) {
-            toast.error('Failed to add user', error);
-            console.error('Error adding user:', error);
+            toast.error('Failed to add client', error);
+            console.error('Error adding client:', error);
         } finally {
-            toggleModal('addUser', false);
+            toggleModal('addClient', false);
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+        fetchClient();
+    }, [fetchClient]);
 
     return (
         <AdminLayout>
@@ -123,13 +126,13 @@ function DashboardUsers() {
             </Modal>) : (
                 <>
                     <div className="absolute top-4 right-4">
-                        <AddButton title="Add User" onClick={() => toggleModal('addUser', true)} />
+                        <AddButton title="Add Client" onClick={() => toggleModal('addClient', true)} />
                     </div>
                     <div className="grid grid-cols-12 gap-6">
-                        <WidgetCard title="Total Users" totalusers={users.length} />
-                        <UsersTable
-                            data={users}
-                            onViewClick={(user) => toggleModal('viewUser', true, user)}
+                        <WidgetCard title="Total Clients" totalusers={clients.length} />
+                        <ClientsTable
+                            data={clients}
+                            onViewClick={(client) => toggleModal('viewClient', true, client)}
                             onDeleteClick={(id) => toggleModal('delete', true, id)}
                         />
                     </div>
@@ -137,20 +140,20 @@ function DashboardUsers() {
                     {/* Delete Confirmation Modal */}
                     <ConfirmModal
                         isOpen={isModalOpen.delete}
-                        message="Are you sure you want to delete this user?"
-                        onConfirm={handleDeleteUser}
+                        message="Are you sure you want to delete this client?"
+                        onConfirm={handleDeleteClient}
                         onCancel={() => toggleModal('delete', false)}
                     />
 
-                    {/* View/Edit User Modal */}
-                    {isModalOpen.viewUser && modalData.viewUserData && (
+                    {/* View/Edit Client Modal */}
+                    {isModalOpen.viewClient && modalData.viewClientData && (
                         <Modal
-                            onClose={() => toggleModal('viewUser', false)}
-                            title={`User Created On ${new Date(modalData.viewUserData.createdAt).toLocaleDateString('in-ID')}`}
+                            onClose={() => toggleModal('viewClient', false)}
+                            title={`Client Created On ${new Date(modalData.viewClientData.createdAt).toLocaleDateString('in-ID')}`}
                             width="max-w-3xl"
                         >
                             <div className="grid grid-cols-2 gap-5">
-                                {['username', 'role', 'balance'].map((field) => (
+                                {['name', 'email', 'website'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
                                         <span className="font-semibold">
                                             {field.charAt(0).toUpperCase() + field.slice(1)}
@@ -166,16 +169,16 @@ function DashboardUsers() {
                                 ))}
                             </div>
                             <div className="flex justify-end mt-5">
-                                <AddButton title="Edit" onClick={handleUpdateUser} />
+                                <AddButton title="Edit" onClick={handleUpdateClient} />
                             </div>
                         </Modal>
                     )}
 
-                    {/* Add New User Modal */}
-                    {isModalOpen.addUser && (
-                        <Modal onClose={() => toggleModal('addUser', false)} title="Add New User" width="max-w-3xl">
+                    {/* Add New Client Modal */}
+                    {isModalOpen.addClient && (
+                        <Modal onClose={() => toggleModal('addClient', false)} title="Add New client" width="max-w-3xl">
                             <div className="grid grid-cols-2 gap-5">
-                                {['username', 'password', 'role', 'balance'].map((field) => (
+                                {['name', 'email', 'website'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
                                         <input
                                             className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
@@ -188,7 +191,7 @@ function DashboardUsers() {
                                 ))}
                             </div>
                             <div className="flex justify-end mt-5">
-                                <AddButton title="Add User" onClick={handleAddUser} />
+                                <AddButton title="Add CLient" onClick={handleAddClient} />
                             </div>
                         </Modal>
                     )}
@@ -198,4 +201,4 @@ function DashboardUsers() {
     );
 }
 
-export default DashboardUsers;
+export default DashboardClient;

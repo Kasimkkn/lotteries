@@ -58,3 +58,9 @@ export const getTicketsByUser = (userId) => requestHandler('GET', `/tickets/${us
 export const getAllTickets = () => requestHandler('GET', '/tickets');
 export const getTicketById = (id) => requestHandler('GET', `/tickets/${id}`);
 export const deleteTicket = (id) => requestHandler('DELETE', `/tickets/${id}`);
+
+export const createClient = (data) => requestHandler('POST', '/clients', data);
+export const getAllClients = () => requestHandler('GET', '/clients');
+export const updateClient = (id, data) => requestHandler('PUT', `/clients/${id}`, data);
+export const deleteClient = (id) => requestHandler('DELETE', `/clients/${id}`);
+export const updateClientStatus = (data) => requestHandler('PUT', '/clients/status-update', data);
