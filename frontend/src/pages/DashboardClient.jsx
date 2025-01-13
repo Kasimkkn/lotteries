@@ -93,7 +93,6 @@ function DashboardClient() {
         }
     };
 
-    // Handle new Client creation
     const handleAddClient = async () => {
         const { new: newClient } = formData;
         setLoading(true);

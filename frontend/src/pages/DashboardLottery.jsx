@@ -41,8 +41,13 @@ function DashboardLottery() {
     };
 
     const handleInputChange = (e, type) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [type]: { ...prev[type], [name]: value } }));
+        const { name, value, type: inputType, checked } = e.target;
+        const newValue = inputType === 'checkbox' ? checked : value;
+
+        setFormData((prev) => ({
+            ...prev,
+            [type]: { ...prev[type], [name]: newValue },
+        }));
     };
 
     const handleDeleteRaffle = async () => {
@@ -79,19 +84,28 @@ function DashboardLottery() {
         const { update } = formData;
         if (!viewRaffleData) return;
         const formDataObj = new FormData();
+        console.log('udate', update);
 
-        const updatedNumbers = update.numbers.split(',').map(num => Number(num.trim()));
+        const updatedNumbers = Array.isArray(update.numbers)
+            ? update.numbers
+            : typeof update.numbers === 'string'
+                ? update.numbers.split(',').map(num => Number(num.trim()))
+                : [];
+
         console.log('updatedNumbers', updatedNumbers);
 
         formDataObj.append("numbers", JSON.stringify(updatedNumbers));
-        // Append fields to FormData
+
         formDataObj.append("name", update.name);
         formDataObj.append("type", update.type);
         formDataObj.append("launchDate", update.launchDate);
         formDataObj.append("drawDate", update.drawDate);
         formDataObj.append("totalEntriesAllowed", update.totalEntriesAllowed);
+        formDataObj.append("isUniqueNumberSelection", update.isUniqueNumberSelection);
+        formDataObj.append("isMultipleNumberSelection", update.isMultipleNumberSelection);
         formDataObj.append("ticketPrice", update.ticketPrice);
-        formDataObj.append("photo", update.photo); // Ensure this is a File object
+        formDataObj.append("photo", update.photo);
+
         setLoading(true);
         try {
             const response = await updateRaffle(viewRaffleData._id, formDataObj);
@@ -115,23 +129,21 @@ function DashboardLottery() {
     const handleAddRaffle = async () => {
         const { new: raffle } = formData;
         const formDataObj = new FormData();
-
-        // Append fields to FormData        
         const updatedNumbers = raffle.numbers.split(',').map(num => Number(num.trim()));
-        console.log('updatedNumbers', updatedNumbers);
-
-        formDataObj.append("numbers", JSON.stringify(updatedNumbers)); // Serialize the array as JSON
-
+        formDataObj.append("numbers", JSON.stringify(updatedNumbers));
         formDataObj.append("name", raffle.name);
         formDataObj.append("type", raffle.type);
         formDataObj.append("launchDate", raffle.launchDate);
         formDataObj.append("drawDate", raffle.drawDate);
         formDataObj.append("totalEntriesAllowed", raffle.totalEntriesAllowed);
+        formDataObj.append("isUniqueNumberSelection", raffle.isUniqueNumberSelection);
+        formDataObj.append("isMultipleNumberSelection", raffle.isMultipleNumberSelection);
         formDataObj.append("ticketPrice", raffle.ticketPrice);
-        formDataObj.append("photo", raffle.photo); // Ensure this is a File object
+        formDataObj.append("photo", raffle.photo);
 
         setLoading(true);
 
+        console.log('formDataObj', formDataObj);
         try {
             const response = await createRaffle(formDataObj);
             if (response.success) {
@@ -145,7 +157,6 @@ function DashboardLottery() {
             toast.error(error.message || "Failed to add raffle");
             console.error("Error adding raffle:", error);
         } finally {
-            // emtpy the form
             setFormData((prev) => ({ ...prev, new: {} }));
             toggleModal("addRaffle", false);
             setLoading(false);
@@ -188,14 +199,17 @@ function DashboardLottery() {
                         <Modal
                             onClose={() => toggleModal('viewRaffle', false)}
                             title={`Raffle Details`}
-                            width="max-w-3xl"
+                            width="max-w-4xl"
                         >
                             <div className="grid grid-cols-2 gap-5">
-                                {['name', 'type', 'launchDate', 'drawDate', 'totalEntriesAllowed', 'ticketPrice', 'numbers', 'photo'].map((field) => (
+                                {['name', 'type', 'launchDate', 'drawDate', 'totalEntriesAllowed', 'ticketPrice', 'numbers', 'photo', 'isUniqueNumberSelection', 'isMultipleNumberSelection'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
-                                        <span className="font-semibold">
-                                            {field.charAt(0).toUpperCase() + field.slice(1)}
-                                        </span>
+                                        {(field !== "isMultipleNumberSelection" && field !== "isUniqueNumberSelection") && (
+                                            <span className="font-semibold">
+                                                {field.charAt(0).toUpperCase() + field.slice(1)}
+                                            </span>
+                                        )}
+
                                         {field === 'photo' ? (
                                             <input
                                                 type="file"
@@ -212,18 +226,33 @@ function DashboardLottery() {
                                                 onChange={(e) => handleInputChange(e, 'update')}
                                             />
                                         ) : field === 'numbers' ? (
-                                            <>
+                                            <input
+                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                name={field}
+                                                value={
+                                                    Array.isArray(formData.update[field])
+                                                        ? formData.update[field].join(',')
+                                                        : formData.update[field] || ''
+                                                }
+                                                onChange={(e) => handleInputChange(e, 'update')}
+                                            />
+                                        ) : field === 'isUniqueNumberSelection' || field === 'isMultipleNumberSelection' ? (
+                                            <label className="inline-flex items-center cursor-pointer">
                                                 <input
-                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                    type="checkbox"
                                                     name={field}
-                                                    value={
-                                                        Array.isArray(formData.update[field])
-                                                            ? formData.update[field].join(',')
-                                                            : formData.update[field] || ''
-                                                    }
+                                                    value={formData.update[field] || ''}
                                                     onChange={(e) => handleInputChange(e, 'update')}
+                                                    checked={formData.update[field] || false}
+                                                    className="sr-only peer"
                                                 />
-                                            </>
+                                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-1  rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                                    {field.charAt(0).toUpperCase() + field.slice(1)}
+
+                                                </span>
+
+                                            </label>
                                         ) : (
                                             <input
                                                 className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
@@ -235,6 +264,7 @@ function DashboardLottery() {
                                     </div>
                                 ))}
                             </div>
+
                             <div className="flex justify-end mt-5">
                                 <AddButton title="Update Raffle" onClick={handleUpdateRaffle} />
                             </div>
@@ -243,13 +273,16 @@ function DashboardLottery() {
 
                     {/* Add New Raffle Modal */}
                     {isModalOpen.addRaffle && (
-                        <Modal onClose={() => toggleModal('addRaffle', false)} title="Add New Raffle" width="max-w-3xl">
-                            <div className="grid grid-cols-2 gap-5">
-                                {['name', 'type', 'launchDate', 'drawDate', 'totalEntriesAllowed', 'ticketPrice', 'numbers', 'photo'].map((field) => (
+                        <Modal onClose={() => toggleModal('addRaffle', false)} title="Add New Raffle" width="max-w-4xl">
+                            <div className="grid grid-cols-2 gap-5 items-center">
+                                {['name', 'type', 'launchDate', 'drawDate', 'totalEntriesAllowed', 'ticketPrice', 'numbers', 'photo', 'isUniqueNumberSelection', 'isMultipleNumberSelection'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
-                                        <span className="font-semibold">
-                                            {field.charAt(0).toUpperCase() + field.slice(1)}
-                                        </span>
+                                        {(field !== "isMultipleNumberSelection" && field !== "isUniqueNumberSelection") && (
+                                            <span className="font-semibold">
+                                                {field.charAt(0).toUpperCase() + field.slice(1)}
+                                            </span>
+                                        )}
+
                                         {field === 'photo' ? (
                                             <input
                                                 type="file"
@@ -265,6 +298,20 @@ function DashboardLottery() {
                                                 value={formData.new[field] || ''}
                                                 onChange={(e) => handleInputChange(e, 'new')}
                                             />
+                                        ) : field === 'isUniqueNumberSelection' || field === 'isMultipleNumberSelection' ? (
+                                            <label className="inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    name={field}
+                                                    value={formData.new[field] || ''}
+                                                    onChange={(e) => handleInputChange(e, 'new')}
+                                                    checked={formData.new[field]}
+                                                    className="sr-only peer"
+                                                />
+                                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-1  rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">                                            {field.charAt(0).toUpperCase() + field.slice(1)}</span>
+
+                                            </label>
                                         ) : (
                                             <input
                                                 className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"

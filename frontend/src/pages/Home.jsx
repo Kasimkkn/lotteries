@@ -4,6 +4,7 @@ import ProductCard from '../components/ProductCard';
 import ProductDetails from '../components/ProductDetails';
 import { getAllRaffles } from '../service/apiServices';
 import banner from '../images/banner.jpeg'
+import Modal from '../components/Modal';
 const Home = () => {
     const [raffle, setRaffle] = useState([]);
     const [fullViewProduct, setFullViewProduct] = useState(null);
@@ -33,7 +34,7 @@ const Home = () => {
     return (
         <>
             <HomeHeader />
-            <div className={`text-white  ${fullViewModal ? 'blur-sm' : ''}`}>
+            <div className={`text-white bg-slate-950  ${fullViewModal ? 'blur-sm' : ''}`}>
 
                 {/* Main Banner */}
                 <div className="w-full h-[400px] relative">
@@ -67,7 +68,7 @@ const Home = () => {
                 </div>
 
                 {/* Countdown Timer */}
-                <div className="py-4  justify-center gap-4 md:gap-10  flex max-md:flex-col items-center bg-black text-white">
+                <div className="py-4 border-b border-t border-white  justify-center gap-4 md:gap-10  flex max-md:flex-col items-center bg-black text-white">
                     <h3 className="text-lg font-semibold">UNTIL THE NEXT LIVE DRAW</h3>
                     <div className="flex justify-center gap-2 text-lg">
                         <span>44</span>:<span>11</span>:<span>13</span>:<span>22</span>
@@ -90,17 +91,12 @@ const Home = () => {
             </div>
 
             {fullViewModal && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="relative bg-white w-full max-w-3xl mx-auto rounded-lg overflow-hidden shadow-lg">
-                        <button
-                            className="absolute top-3 right-3 text-black text-2xl focus:outline-none"
-                            onClick={() => toggleFullViewModal(null)}
-                        >
-                            &times;
-                        </button>
-                        <ProductDetails product={fullViewProduct} toggleFullViewModal={toggleFullViewModal} />
-                    </div>
-                </div>
+                <Modal
+                    title={` `}
+                    width={'max-w-3xl'}
+                    onClose={toggleFullViewModal} >
+                    <ProductDetails product={fullViewProduct} toggleFullViewModal={toggleFullViewModal} />
+                </Modal>
             )}
         </>
     );

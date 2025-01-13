@@ -4,135 +4,132 @@ import { purchaseTicket } from '../service/apiServices';
 import toast from 'react-hot-toast';
 
 const ProductDetails = ({ product, toggleFullViewModal }) => {
+    console.log('product', product);
     const userId = JSON.parse(localStorage.getItem('lottery:user')).id;
-    const [selectedQuantity, setSelectedQuantity] = useState(1);
+    // const [selectedQuantity, setSelectedQuantity] = useState(1);
     const [selectedNumber, setSelectedNumber] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    console.log('product', product);
+    let filteredNumbers
+    if (product.isUniqueNumberSelection) {
+
+        filteredNumbers = Array.isArray(product.userSelectedNumbers) && product.userSelectedNumbers.length > 0
+            ? product.numbers.filter((num) => !product.userSelectedNumbers.includes(num))
+            : product.numbers;
+    } else {
+        filteredNumbers = product.numbers;
+    }
+
+    const handleNumberSelect = (number) => {
+        setSelectedNumber(number);
+    };
+
     const handleBuyNow = async (productId) => {
+        if (!selectedNumber) {
+            toast.error('Please select a number');
+            return;
+        }
+
         setIsLoading(true);
-        if (!selectedNumber) return toast.error('Please select a number');
         try {
             const response = await purchaseTicket({
                 userId,
                 raffleId: productId,
                 selectedNumbers: selectedNumber,
-                quantity: selectedQuantity,
+                quantity: 1,
             });
 
             if (response.success) {
                 toast.success(response.message || 'Ticket purchased successfully');
-                console.log('response', response);
             } else {
                 toast.error(response.message || 'Failed to purchase ticket');
             }
         } catch (error) {
-            if (error.response) {
-                toast.error(error.response.message);
-            } else {
-                toast.error('Failed to purchase ticket');
-            }
-            console.log('Error purchasing ticket:', error);
+            toast.error(error.response?.message || 'Failed to purchase ticket');
         } finally {
             setIsLoading(false);
             toggleFullViewModal(null);
         }
     };
 
-
     return (
-        <section className="relative z-40 max-w-8xl p-6 md:p-10 bg-black text-white">
-            <div className="w-full mx-auto px-4 sm:px-6 lg:px-0">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-                    {/* Image Section */}
-                    <div className="img">
-                        <div className="img-box h-full max-lg:mx-auto">
-                            <img
-                                src={product.photo}
-                                alt={product.name}
-                                className="w-full h-auto object-cover rounded-lg"
-                            />
-                        </div>
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4  items-start">
 
-                    {/* Details Section */}
-                    <div className="data w-full flex items-center">
-                        <div className="data w-full max-w-xl">
-                            <p className="text-lg font-medium leading-8 text-indigo-400 mb-4">
-                                {product.type}
-                            </p>
-                            <h2 className="font-manrope font-bold text-3xl leading-10 mb-4 capitalize">
-                                {product.name}
-                            </h2>
-                            <div className="mb-4">
-                                <h6 className="font-manrope font-semibold text-2xl mb-2">
-                                    Ticket Price: ${product.ticketPrice}
-                                </h6>
-                                <p className="text-gray-300">
-                                    Entrants: {product.entrants} / {product.totalEntriesAllowed}
-                                </p>
-                                <p className="text-gray-300">
-                                    Launch Date: {new Date(product.launchDate).toLocaleDateString()}
-                                </p>
-                                <p className="text-gray-300">
-                                    Draw Date: {new Date(product.drawDate).toLocaleDateString()}
-                                </p>
-                            </div>
-                            <div className="my-4 flex items-center gap-2">
-                                <select
-                                    value={selectedQuantity}
-                                    onChange={(e) => setSelectedQuantity(Number(e.target.value))}
-                                    className="dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                >
-                                    {[1, 2, 3, 4, 5].map((q) => (
-                                        <option key={q} value={q}>
-                                            {q}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    value={selectedNumber}
-                                    onChange={(e) => setSelectedNumber(Number(e.target.value))}
-                                    className="dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                >
-                                    {Array.isArray(product.numbers) && product.numbers.length > 0 ? product.numbers.map((val, index) => (
-                                        <option key={index} value={val}>
-                                            {val}
-                                        </option>
-                                    )) : (
-                                        <>
-                                            {[1, 2, 3, 4, 5].map((q) => (
-                                                <option key={q} value={q}>
-                                                    {q}
-                                                </option>
-                                            ))}
-                                        </>
-                                    )}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => handleBuyNow(product._id)}
-                                    disabled={isLoading}
-                                    className="text-center w-full px-5 py-4 rounded-full bg-indigo-600 flex items-center justify-center font-semibold text-lg shadow-sm transition-all duration-500 hover:bg-indigo-700 hover:shadow-lg disabled:bg-gray-500"
-                                >
-                                    {isLoading ? 'Processing...' : 'Buy Now'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            {/* Product Image */}
+            <div className="flex justify-center lg:justify-start">
+                <div className="md:h-full  w-full max-w-md lg:max-w-lg mx-auto">
+                    <img
+                        src={product.photo}
+                        alt={product.name}
+                        className="w-full h-56 md:h-auto object-cover rounded-lg shadow-md"
+                    />
                 </div>
             </div>
 
-            {/* Close Button */}
-            <button
-                className="absolute top-2 right-2 p-2 bg-gray-700 rounded-full hover:bg-gray-600"
-                onClick={() => toggleFullViewModal(null)}
-            >
-                <IoMdClose className="text-2xl text-white" />
-            </button>
-        </section>
+            {/* Product Data */}
+            <div className="w-full flex items-center">
+                <div className="w-full max-w-xl space-y-3">
+                    {/* Product Type */}
+                    <p className="text-lg font-medium text-indigo-400">
+                        {product.type}
+                    </p>
+
+                    {/* Product Name */}
+                    <h2 className="font-manrope font-bold text-2xl sm:text-3xl lg:text-4xl leading-tight capitalize">
+                        {product.name}
+                    </h2>
+
+                    {/* Product Info */}
+                    <div className="space-y-2">
+                        <h6 className="font-manrope font-semibold text-xl sm:text-2xl">
+                            Ticket Price: ${product.ticketPrice}
+                        </h6>
+                        <p className="text-gray-300 text-sm sm:text-base">
+                            Entrants: {product.entrants} / {product.totalEntriesAllowed}
+                        </p>
+                        <p className="text-gray-300 text-sm sm:text-base">
+                            Launch Date: {new Date(product.launchDate).toLocaleDateString()}
+                        </p>
+                        <p className="text-gray-300 text-sm sm:text-base">
+                            Draw Date: {new Date(product.drawDate).toLocaleDateString()}
+                        </p>
+                    </div>
+
+                    {/* Select Number */}
+                    <p className="text-lg font-medium leading-8 text-indigo-400">Select Number</p>
+                    <div className="overflow-x-auto whitespace-nowrap">
+                        <div className="flex flex-wrap gap-3">
+                            {filteredNumbers.length === 0
+                                ? 'All Numbers Are Selected'
+                                : filteredNumbers.map((number) => (
+                                    <button
+                                        key={number}
+                                        onClick={() => handleNumberSelect(number)}
+                                        className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border 
+                                                    ${selectedNumber === number
+                                                ? 'bg-indigo-600 text-white border-indigo-600'
+                                                : 'bg-white text-black border-gray-400'} 
+                                                    hover:bg-indigo-500 hover:text-white transition`}
+                                    >
+                                        {number}
+                                    </button>
+                                ))}
+                        </div>
+                    </div>
+
+                    {/* Buy Now Button */}
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => handleBuyNow(product._id)}
+                            disabled={isLoading}
+                            className="text-center w-full px-5 py-3 rounded-full bg-indigo-600 text-white font-semibold text-lg shadow-sm transition-all duration-500 hover:bg-indigo-700 hover:shadow-lg disabled:bg-gray-500"
+                        >
+                            {isLoading ? 'Processing...' : 'Buy Now'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
