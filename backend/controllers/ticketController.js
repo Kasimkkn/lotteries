@@ -5,22 +5,29 @@ import CustomError from '../utils/CustomError.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import transactionModel from '../models/transactionModel.js';
 
+// Purchase a ticket for a raffle
 export const purchaseTicket = asyncHandler(async (req, res) => {
     const { userId, raffleId, selectedNumbers, quantity } = req.body;
 
+    // Fetch user and raffle details concurrently
     const [user, raffle] = await Promise.all([
         User.findById(userId),
         Raffle.findById(raffleId),
     ]);
 
+    // Validate user and raffle existence
     if (!user) throw new CustomError('User not found', 404);
     if (!raffle) throw new CustomError('Raffle not found', 404);
+
+    // Check if raffle is full
     if (raffle.entrants >= raffle.totalEntriesAllowed) {
         return res.status(200).json({
             success: true,
             message: 'Raffle is full, no more entries allowed',
         });
     }
+
+    // Check if user has sufficient balance
     if (user.balance < raffle.ticketPrice) {
         return res.status(200).json({
             success: true,
@@ -28,9 +35,11 @@ export const purchaseTicket = asyncHandler(async (req, res) => {
         });
     }
 
+    // Check for existing ticket for the same raffle
     const existingTicket = await Ticket.findOne({ user: userId, raffle: raffleId });
 
     if (existingTicket) {
+        // Limit ticket purchases to a maximum of 5 per raffle
         if (existingTicket.quantity >= 5) {
             return res.status(200).json({
                 success: true,
@@ -38,7 +47,8 @@ export const purchaseTicket = asyncHandler(async (req, res) => {
             });
         }
 
-        await updateExistingTicket(existingTicket, user, raffle, quantity);
+        await updateExistingTicket(existingTicket, user, raffle, quantity, selectedNumbers);
+
         return res.status(200).json({
             success: true,
             message: 'Ticket quantity updated successfully',
@@ -47,6 +57,7 @@ export const purchaseTicket = asyncHandler(async (req, res) => {
         });
     }
 
+    // Create a new ticket
     const newTicket = await Ticket.create({
         user: userId,
         raffle: raffleId,
@@ -55,7 +66,7 @@ export const purchaseTicket = asyncHandler(async (req, res) => {
         price: raffle.ticketPrice,
     });
 
-    await finalizeTransaction(user, raffle, quantity);
+    await finalizeTransaction(user, raffle, quantity, selectedNumbers);
 
     res.status(201).json({
         success: true,
@@ -65,23 +76,36 @@ export const purchaseTicket = asyncHandler(async (req, res) => {
     });
 });
 
-const updateExistingTicket = async (ticket, user, raffle, quantity) => {
+// Update an existing ticket with additional quantity and numbers
+const updateExistingTicket = async (ticket, user, raffle, quantity, selectedNumbers) => {
+    console.log('Updating existing ticket:', quantity, selectedNumbers);
+
+    // Update raffle selected numbers and ticket quantity
+    raffle.userSelectedNumbers.push(selectedNumbers);
     ticket.quantity += quantity;
     user.balance -= raffle.ticketPrice * quantity;
     raffle.entrants += 1;
 
     await Promise.all([ticket.save(), user.save(), raffle.save()]);
-    await createTransaction(user._id, raffle.ticketPrice, raffle.name);
+
+    await createTransaction(user._id, raffle.ticketPrice * quantity, raffle.name);
 };
 
-const finalizeTransaction = async (user, raffle, quantity) => {
+// Finalize the transaction after creating a new ticket
+const finalizeTransaction = async (user, raffle, quantity, selectedNumbers) => {
+    console.log('Finalizing transaction:', selectedNumbers);
+
+    // Update raffle selected numbers, user balance, and entrants count
+    raffle.userSelectedNumbers.push(selectedNumbers);
     user.balance -= raffle.ticketPrice * quantity;
-    raffle.entrants += 1;
+    raffle.entrants += quantity;
 
     await Promise.all([user.save(), raffle.save()]);
-    await createTransaction(user._id, raffle.ticketPrice, raffle.name);
+
+    await createTransaction(user._id, raffle.ticketPrice * quantity, raffle.name);
 };
 
+// Record the transaction in the database
 const createTransaction = async (userId, amount, raffleName) => {
     await transactionModel.create({
         user: userId,
@@ -90,6 +114,7 @@ const createTransaction = async (userId, amount, raffleName) => {
         description: `Ticket purchase for raffle: ${raffleName}`,
     });
 };
+
 
 export const getTicketsByUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;

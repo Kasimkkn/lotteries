@@ -5,10 +5,8 @@ import cloudinary from 'cloudinary';
 import { getPublicIdFromUrl } from '../utils/feauters.js';
 
 export const createRaffle = asyncHandler(async (req, res, next) => {
-    const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice } = req.body;
+    const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice, isMultipleNumberSelection } = req.body;
     let { numbers } = req.body;
-    console.log('Raw numbers:', numbers);
-
     try {
         numbers = JSON.parse(numbers);
         if (!Array.isArray(numbers) || !numbers.every(num => typeof num === 'number')) {
@@ -43,6 +41,8 @@ export const createRaffle = asyncHandler(async (req, res, next) => {
         ticketPrice,
         numbers,
         createdBy,
+        isUniqueNumberSelection: isMultipleNumberSelection == "true" ? false : true,
+        isMultipleNumberSelection: isMultipleNumberSelection == "true" ? true : false,
         photo: cloudinaryResponse.secure_url,
     });
 
@@ -55,6 +55,7 @@ export const createRaffle = asyncHandler(async (req, res, next) => {
 
 export const getAllRaffles = asyncHandler(async (req, res, next) => {
     const raffles = await Raffle.find().populate('createdBy', 'username role');
+
     res.status(200).json({
         success: true,
         raffles,
@@ -81,10 +82,8 @@ export const getRaffleById = asyncHandler(async (req, res) => {
 
 export const updateRaffle = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice, isApproved } = req.body;
-    console.log('req.body', req.body);
+    const { name, type, launchDate, drawDate, totalEntriesAllowed, ticketPrice, isApproved, isMultipleNumberSelection } = req.body;
     let { numbers } = req.body;
-    console.log('Raw numbers:', numbers);
     try {
         numbers = JSON.parse(numbers);
         if (!Array.isArray(numbers) || !numbers.every(num => typeof num === 'number')) {
@@ -123,7 +122,8 @@ export const updateRaffle = asyncHandler(async (req, res, next) => {
     if (totalEntriesAllowed !== undefined) raffle.totalEntriesAllowed = totalEntriesAllowed;
     if (ticketPrice !== undefined) raffle.ticketPrice = ticketPrice;
     if (isApproved !== undefined) raffle.isApproved = isApproved;
-
+    raffle.isUniqueNumberSelection = isUniqueNumberSelection === "true" ? false : true;
+    if (isMultipleNumberSelection !== undefined) raffle.isMultipleNumberSelection = isMultipleNumberSelection === "true" ? true : false;
     raffle.updatedAt = new Date();
     await raffle.save();
 

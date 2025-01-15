@@ -2,9 +2,9 @@ import React from 'react';
 
 const Modal = ({ title, children, onClose, width }) => {
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-8">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-40 p-2 sm:p-8">
             <div
-                className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full relative 
+                className={`z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full relative 
                 ${width || 'max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl'} max-md:h-[90%] p-6`}
             >
                 {/* Header Section */}
@@ -25,7 +25,7 @@ const Modal = ({ title, children, onClose, width }) => {
                 </div>
 
                 {/* Content Section */}
-                <div className="max-h-[80vh] md:max-h-[70vh] overflow-y-auto scroll text-sm sm:text-base md:text-lg">
+                <div className="max-h-[70vh] overflow-y-auto scroll text-sm sm:text-base md:text-lg">
                     {children}
                 </div>
             </div>
