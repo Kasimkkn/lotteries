@@ -15,6 +15,17 @@ function DashboardLottery() {
     const [modalData, setModalData] = useState({ raffleIdToDelete: null, viewRaffleData: null });
     const [raffles, setRaffles] = useState([]);
     const [formData, setFormData] = useState({ new: {}, update: {} });
+    const [errors, setErrors] = useState({
+        name: '',
+        launchDate: '',
+        drawDate: '',
+        totalEntriesAllowed: '',
+        ticketPrice: '',
+        numbers: '',
+        photo: '',
+        isMultipleNumberSelection: ''
+    });
+
 
     const fetchRaffles = useCallback(async () => {
         setLoading(true);
@@ -80,65 +91,57 @@ function DashboardLottery() {
 
 
     const validateRaffle = (raffle, isEdit = false) => {
-        const errors = [];
-        const currentDate = new Date();
-        const twentyDaysFromNow = new Date(currentDate);
-        twentyDaysFromNow.setDate(twentyDaysFromNow.getDate() + 20);
+        const errors = {};
 
         // Name Validation
         if (!raffle.name || /[^a-zA-Z0-9\s]/.test(raffle.name)) {
-            errors.push("Name is required and cannot contain special characters.");
-            return errors;
+            errors.name = "Name is required and cannot contain special characters.";
         }
 
         // Launch Date Validation
         const launchDate = new Date(raffle.launchDate);
-        if (!raffle.launchDate || launchDate < currentDate || launchDate > twentyDaysFromNow) {
-            errors.push("Launch date must be within the next 20 days and cannot be in the past.");
-            return errors;
+        if (!raffle.launchDate || launchDate < new Date() || launchDate > new Date(new Date().setDate(new Date().getDate() + 20))) {
+            errors.launchDate = "Launch date must be within the next 20 days and cannot be in the past.";
         }
 
         // Draw Date Validation
         const drawDate = new Date(raffle.drawDate);
         if (!raffle.drawDate || drawDate <= launchDate || (drawDate - launchDate) / (1000 * 60 * 60 * 24) < 2) {
-            errors.push("Draw date must be at least 2 days after the launch date.");
-            return errors;
+            errors.drawDate = "Draw date must be at least 2 days after the launch date.";
         }
 
         // Total Entries Validation
         if (!raffle.totalEntriesAllowed || isNaN(raffle.totalEntriesAllowed)) {
-            errors.push("Total entries must be a valid number.");
-            return errors;
+            errors.totalEntriesAllowed = "Total entries must be a valid number.";
         }
 
         // Ticket Price Validation
         if (!raffle.ticketPrice || isNaN(raffle.ticketPrice)) {
-            errors.push("Ticket price must be a valid number.");
-            return errors;
+            errors.ticketPrice = "Ticket price must be a valid number.";
         }
 
         // Banner Validation
         if (!isEdit && raffle.photo) {
             const allowedTypes = ["image/jpeg", "image/png"];
             if (!allowedTypes.includes(raffle.photo.type)) {
-                errors.push("Banner must be a JPEG or PNG image.");
+                errors.photo = "Banner must be a JPEG or PNG image.";
             }
             if (raffle.photo.size > 5 * 1024 * 1024) {
-                errors.push("Banner size cannot exceed 5 MB.");
+                errors.photo = "Banner size cannot exceed 5 MB.";
             }
         }
 
         return errors;
     };
 
+
     // Updated Handle Add Raffle
     const handleAddRaffle = async () => {
         const { new: raffle } = formData;
 
-        // Validate Inputs
-        const errors = validateRaffle(raffle);
-        if (errors.length > 0) {
-            toast.error(errors.join("\n"));
+        const fieldErrors = validateRaffle(raffle);
+        if (Object.keys(fieldErrors).length > 0) {
+            setErrors(fieldErrors); // Set field-specific errors
             return;
         }
 
@@ -185,10 +188,9 @@ function DashboardLottery() {
         const { viewRaffleData } = modalData;
         const { update: raffle } = formData;
 
-        // Validate Inputs
-        const errors = validateRaffle(raffle, true);
-        if (errors.length > 0) {
-            toast.error(errors.join("\n"));
+        const fieldErrors = validateRaffle(raffle, true);
+        if (Object.keys(fieldErrors).length > 0) {
+            setErrors(fieldErrors); // Set field-specific errors
             return;
         }
 
@@ -277,60 +279,76 @@ function DashboardLottery() {
                                         )}
 
                                         {field === 'photo' ? (
-                                            <input
-                                                type="file"
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                name={field}
-                                                required
-                                                onChange={(e) => handleFileChange(e, 'update')}
-                                            />
-                                        ) : field === 'launchDate' || field === 'drawDate' ? (
-                                            <input
-                                                type="date"
-                                                min={new Date().toISOString().split('T')[0]}
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                required
-                                                name={field}
-                                                value={formData.update[field] || ''}
-                                                onChange={(e) => handleInputChange(e, 'update')}
-                                            />
-                                        ) : field === 'numbers' ? (
-                                            <input
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                name={field}
-                                                required
-                                                value={
-                                                    Array.isArray(formData.update[field])
-                                                        ? formData.update[field].join(',')
-                                                        : formData.update[field] || ''
-                                                }
-                                                onChange={(e) => handleInputChange(e, 'update')}
-                                            />
-                                        ) : field === 'isMultipleNumberSelection' ? (
-                                            <label className="inline-flex items-center cursor-pointer">
+                                            <div>
+
                                                 <input
-                                                    type="checkbox"
+                                                    type="file"
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                    name={field}
+                                                    required
+                                                    onChange={(e) => handleFileChange(e, 'update')}
+                                                />
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
+
+                                        ) : field === 'launchDate' || field === 'drawDate' ? (
+                                            <div>
+                                                <input
+                                                    type="date"
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                    required
+                                                    name={field}
+                                                    value={formData.update[field] || ''}
+                                                    onChange={(e) => handleInputChange(e, 'update')}
+                                                />
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
+                                        ) : field === 'numbers' ? (
+                                            <div>
+                                                <input
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                    name={field}
+                                                    required
+                                                    value={
+                                                        Array.isArray(formData.update[field])
+                                                            ? formData.update[field].join(',')
+                                                            : formData.update[field] || ''
+                                                    }
+                                                    onChange={(e) => handleInputChange(e, 'update')}
+                                                />
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
+                                        ) : field === 'isMultipleNumberSelection' ? (
+                                            <div>
+                                                <label className="inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name={field}
+                                                        required
+                                                        value={formData.update[field] || ''}
+                                                        onChange={(e) => handleInputChange(e, 'update')}
+                                                        checked={formData.update[field] || false}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-1  rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                                        {formatLabel(field)}
+                                                    </span>
+                                                </label>
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <input
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                                     name={field}
                                                     required
                                                     value={formData.update[field] || ''}
                                                     onChange={(e) => handleInputChange(e, 'update')}
-                                                    checked={formData.update[field] || false}
-                                                    className="sr-only peer"
                                                 />
-                                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-1  rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                                    {formatLabel(field)}
-                                                </span>
-
-                                            </label>
-                                        ) : (
-                                            <input
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                name={field}
-                                                required
-                                                value={formData.update[field] || ''}
-                                                onChange={(e) => handleInputChange(e, 'update')}
-                                            />
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
                                         )}
                                     </div>
                                 ))}
@@ -356,45 +374,56 @@ function DashboardLottery() {
                                         )}
 
                                         {field === 'photo' ? (
-                                            <input
-                                                type="file"
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                name={field}
-                                                onChange={(e) => handleFileChange(e, 'new')}
-                                            />
-                                        ) : field === 'launchDate' || field === 'drawDate' ? (
-                                            <input
-                                                type="date"
-                                                min={new Date().toISOString().split('T')[0]}
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                name={field}
-                                                value={formData.new[field] || ''}
-                                                onChange={(e) => handleInputChange(e, 'new')}
-                                            />
-                                        ) : field === 'isMultipleNumberSelection' ? (
-                                            <label className="inline-flex items-center cursor-pointer">
+                                            <div>
                                                 <input
-                                                    type="checkbox"
+                                                    type="file"
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                    name={field}
+                                                    onChange={(e) => handleFileChange(e, 'new')}
+                                                />
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
+                                        ) : field === 'launchDate' || field === 'drawDate' ? (
+                                            <div>
+                                                <input
+                                                    type="date"
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                                     name={field}
                                                     value={formData.new[field] || ''}
                                                     onChange={(e) => handleInputChange(e, 'new')}
-                                                    checked={formData.new[field]}
-                                                    className="sr-only peer"
                                                 />
-                                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-1  rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                                <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                                                    {formatLabel(field)}
-                                                </span>
-
-                                            </label>
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
+                                        ) : field === 'isMultipleNumberSelection' ? (
+                                            <div>
+                                                <label className="inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        name={field}
+                                                        value={formData.new[field] || ''}
+                                                        onChange={(e) => handleInputChange(e, 'new')}
+                                                        checked={formData.new[field]}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-1  rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                                        {formatLabel(field)}
+                                                    </span>
+                                                </label>
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
                                         ) : (
-                                            <input
-                                                className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
-                                                name={field}
-                                                value={formData.new[field] || ''}
-                                                placeholder={field}
-                                                onChange={(e) => handleInputChange(e, 'new')}
-                                            />
+                                            <div>
+                                                <input
+                                                    className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
+                                                    name={field}
+                                                    value={formData.new[field] || ''}
+                                                    placeholder={field}
+                                                    onChange={(e) => handleInputChange(e, 'new')}
+                                                />
+                                                {errors[field] && <span className="text-red-500 text-sm">{errors[field]}</span>}
+                                            </div>
                                         )}
                                     </div>
                                 ))}
@@ -405,8 +434,9 @@ function DashboardLottery() {
                         </Modal>
                     )}
                 </>
-            )}
-        </AdminLayout>
+            )
+            }
+        </AdminLayout >
     );
 }
 

@@ -25,7 +25,7 @@ const Modal = ({ title, children, onClose, width }) => {
                 </div>
 
                 {/* Content Section */}
-                <div className="max-h-[70vh] overflow-y-auto scroll text-sm sm:text-base md:text-lg">
+                <div className="max-h-[75vh] overflow-y-auto scroll text-sm sm:text-base md:text-lg">
                     {children}
                 </div>
             </div>
