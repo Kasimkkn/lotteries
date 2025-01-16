@@ -19,7 +19,7 @@ const ProductCard = ({ product, toggleFullViewModal }) => (
                     {product.name}
                 </h3>
                 <h4 className="text-lg lg:text-base text-white font-bold lg:text-gray-800">
-                    {product.ticketPrice}
+                    ${product.ticketPrice}
                 </h4>
             </div>
         </div>

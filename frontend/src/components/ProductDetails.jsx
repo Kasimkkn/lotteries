@@ -87,12 +87,23 @@ const ProductDetails = ({ product, toggleFullViewModal }) => {
                         <p className="text-gray-300 text-sm sm:text-base">
                             Entrants: {product.entrants} / {product.totalEntriesAllowed}
                         </p>
-                        <p className="text-gray-300 text-sm sm:text-base">
-                            Launch Date: {new Date(product.launchDate).toLocaleDateString()}
-                        </p>
-                        <p className="text-gray-300 text-sm sm:text-base">
-                            Draw Date: {new Date(product.drawDate).toLocaleDateString()}
-                        </p>
+                        {/* Launch Date and Draw Date Inline */}
+                        <div className="text-gray-300  text-sm sm:text-base flex flex-col gap-2">
+                            <p>
+                                Launch Date: {new Date(product.launchDate).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                            </p>
+                            <p>
+                                Draw Date: {new Date(product.drawDate).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                            </p>
+                        </div>
                     </div>
 
                     {/* Select Number */}
@@ -106,10 +117,10 @@ const ProductDetails = ({ product, toggleFullViewModal }) => {
                                         key={number}
                                         onClick={() => handleNumberSelect(number)}
                                         className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border 
-                                                    ${selectedNumber === number
+                                        ${selectedNumber === number
                                                 ? 'bg-indigo-600 text-white border-indigo-600'
                                                 : 'bg-white text-black border-gray-400'} 
-                                                    hover:bg-indigo-500 hover:text-white transition`}
+                                        hover:bg-indigo-500 hover:text-white transition`}
                                     >
                                         {number}
                                     </button>
@@ -129,6 +140,7 @@ const ProductDetails = ({ product, toggleFullViewModal }) => {
                     </div>
                 </div>
             </div>
+
         </div>
     );
 };

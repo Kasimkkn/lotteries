@@ -4,8 +4,8 @@ const Modal = ({ title, children, onClose, width }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-40 p-2 sm:p-8">
             <div
-                className={`z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full relative 
-                ${width || 'max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl'} max-md:h-[90%] p-6`}
+                className={`z-50 bg-white dark:bg-gray-900 rounded-lg shadow-lg w-full relative 
+                ${width || 'max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl'} p-4`}
             >
                 {/* Header Section */}
                 <div className="flex justify-between items-center pb-4">
@@ -17,7 +17,7 @@ const Modal = ({ title, children, onClose, width }) => {
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="text-black hover:text-gray-800 dark:text-gray-100 text-2xl sm:text-3xl font-bold"
+                            className="text-black hover:text-gray-800 dark:text-gray-100 text-3xl font-bold"
                         >
                             &times;
                         </button>

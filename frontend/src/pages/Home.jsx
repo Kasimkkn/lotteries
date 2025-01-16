@@ -82,7 +82,7 @@ const Home = () => {
                     <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10">
                         Latest Raffle
                     </h2>
-                    <div className="max-md:p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 sm:gap-6 gap-8">
+                    <div className="max-md:p-4 grid grid-cols-1 md:grid-cols-4 sm:gap-6 gap-8">
                         {raffle?.map((raf) => (
                             <ProductCard key={raf._id} product={raf} toggleFullViewModal={toggleFullViewModal} />
                         ))}

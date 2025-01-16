@@ -15,6 +15,41 @@ function DashboardClient() {
     const [modalData, setModalData] = useState({ clientIdToDelete: null, viewClientData: null });
     const [clients, setClient] = useState([]);
     const [formData, setFormData] = useState({ new: {}, update: {} });
+    const [errors, setErrors] = useState({
+        name: '',
+        email: '',
+        website: ''
+    });
+
+    // Validation function
+    const validateClient = (client) => {
+        const errors = {};
+
+        // Name Validation
+        if (!client.name || client.name.trim() === '') {
+            errors.name = "Name is required";
+        } else if (client.name.length < 2) {
+            errors.name = "Name must be at least 2 characters long";
+        } else if (!/^[a-zA-Z0-9\s'-]*$/.test(client.name)) {
+            errors.name = "Name can only contain letters, numbers, spaces, hyphens and apostrophes";
+        }
+
+        // Email Validation
+        if (!client.email || client.email.trim() === '') {
+            errors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(client.email)) {
+            errors.email = "Please enter a valid email address";
+        }
+
+        // Website Validation
+        if (!client.website || client.website.trim() === '') {
+            errors.website = "Website is required";
+        } else if (!/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(client.website)) {
+            errors.website = "Please enter a valid website URL";
+        }
+
+        return errors;
+    };
 
     // Fetch clients from API
     const fetchClient = useCallback(async () => {
@@ -34,6 +69,7 @@ function DashboardClient() {
     // Handle modal state
     const toggleModal = (type, isOpen, data = null) => {
         setIsModalOpen((prev) => ({ ...prev, [type]: isOpen }));
+        setErrors({}); // Clear errors when modal is toggled
         if (type === 'delete') {
             setModalData((prev) => ({ ...prev, clientIdToDelete: data }));
         } else if (type === 'viewClient') {
@@ -46,9 +82,11 @@ function DashboardClient() {
     const handleInputChange = (e, type) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [type]: { ...prev[type], [name]: value } }));
+        // Clear error when user starts typing
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
-    // Handle user deletion
+    // Handle client deletion
     const handleDeleteClient = async () => {
         const { clientIdToDelete } = modalData;
         if (!clientIdToDelete) return;
@@ -58,8 +96,7 @@ function DashboardClient() {
             if (response.success) {
                 toast.success('Client deleted successfully');
                 fetchClient();
-            }
-            else {
+            } else {
                 toast.error(response.message);
             }
         } catch {
@@ -74,6 +111,14 @@ function DashboardClient() {
     const handleUpdateClient = async () => {
         const { viewClientData } = modalData;
         const { update } = formData;
+
+        // Validate form
+        const validationErrors = validateClient(update);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
         if (!viewClientData) return;
         setLoading(true);
         try {
@@ -81,35 +126,42 @@ function DashboardClient() {
             if (response.success) {
                 toast.success('Client updated successfully');
                 fetchClient();
-            }
-            else {
+                toggleModal('viewClient', false);
+            } else {
                 toast.error(response.message);
             }
         } catch (error) {
+            toast.error('Failed to update client');
             console.error('Error updating Client:', error);
         } finally {
-            toggleModal('viewClient', false);
             setLoading(false);
         }
     };
 
     const handleAddClient = async () => {
         const { new: newClient } = formData;
+
+        // Validate form
+        const validationErrors = validateClient(newClient);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await createClient(newClient);
             if (response.success) {
                 toast.success('Client added successfully');
                 fetchClient();
-            }
-            else {
+                toggleModal('addClient', false);
+            } else {
                 toast.error(response.message);
             }
         } catch (error) {
-            toast.error('Failed to add client', error);
+            toast.error('Failed to add client');
             console.error('Error adding client:', error);
         } finally {
-            toggleModal('addClient', false);
             setLoading(false);
         }
     };
@@ -158,12 +210,15 @@ function DashboardClient() {
                                             {field.charAt(0).toUpperCase() + field.slice(1)}
                                         </span>
                                         <input
-                                            // readOnly={formData.update["role"] === "admin"}
                                             className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                             name={field}
+                                            type={field === 'email' ? 'email' : 'text'}
                                             value={formData.update[field] || ''}
                                             onChange={(e) => handleInputChange(e, 'update')}
                                         />
+                                        {errors[field] && (
+                                            <span className="text-red-500 text-sm">{errors[field]}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -175,22 +230,29 @@ function DashboardClient() {
 
                     {/* Add New Client Modal */}
                     {isModalOpen.addClient && (
-                        <Modal onClose={() => toggleModal('addClient', false)} title="Add New client" width="max-w-3xl">
+                        <Modal onClose={() => toggleModal('addClient', false)} title="Add New Client" width="max-w-3xl">
                             <div className="grid grid-cols-2 gap-5">
                                 {['name', 'email', 'website'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
+                                        <span className="font-semibold">
+                                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                                        </span>
                                         <input
                                             className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                             name={field}
+                                            type={field === 'email' ? 'email' : 'text'}
                                             value={formData.new[field] || ''}
                                             placeholder={field}
                                             onChange={(e) => handleInputChange(e, 'new')}
                                         />
+                                        {errors[field] && (
+                                            <span className="text-red-500 text-sm">{errors[field]}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
                             <div className="flex justify-end mt-5">
-                                <AddButton title="Add CLient" onClick={handleAddClient} />
+                                <AddButton title="Add Client" onClick={handleAddClient} />
                             </div>
                         </Modal>
                     )}

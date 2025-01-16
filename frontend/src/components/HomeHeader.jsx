@@ -14,7 +14,7 @@ const HomeHeader = () => {
     };
 
     return (
-        <header className='bg-black fixed w-full top-0 z-50'>
+        <header className='bg-black fixed w-full top-0 z-30'>
             <nav className="px-4 lg:px-6 py-2 md:py-6">
                 <div className="flex max-md:flex-wrap justify-between items-center">
                     <Link to="#" className="flex items-center">

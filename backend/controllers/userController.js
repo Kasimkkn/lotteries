@@ -6,7 +6,7 @@ import transactionModel from '../models/transactionModel.js';
 
 export const createUser = asyncHandler(async (req, res) => {
     const { username, password, role, balance, commissionPercentage } = req.body;
-
+    console.log('req.body', req.body);
     if (!username || !password || !role) {
         throw new CustomError('All fields are required: username, password, role.', 200);
     }
@@ -16,6 +16,7 @@ export const createUser = asyncHandler(async (req, res) => {
     }
 
     const existingUser = await User.findOne({ username, role });
+    console.log('existingUser', existingUser);
     if (existingUser) {
         throw new CustomError(`Username already exists for the role: ${role}.`, 200);
     }

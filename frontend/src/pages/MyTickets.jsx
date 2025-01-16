@@ -53,12 +53,19 @@ const MyTickets = () => {
                                         <h6 className="font-manrope font-semibold text-lg leading-7 text-white mb-2">
                                             {ticket.raffle.name}
                                         </h6>
-                                        <p className="font-normal text-sm leading-6 text-gray-400 mb-2">
-                                            Type: {ticket.raffle.type}
+                                        <p className="flex justify-between items-center text-sm text-gray-400 mb-2">
+                                            <span>
+                                                Type: {ticket.raffle.type}
+                                            </span>
+                                            <span>
+                                                Qty: {ticket.quantity}
+                                            </span>
                                         </p>
-                                        <div className="flex justify-between items-center text-sm text-gray-400">
-                                            <span>Qty: {ticket.quantity}</span>
-                                            <span className="font-semibold text-white">Price: ${ticket.raffle.ticketPrice}</span>
+                                        <div className="flex justify-between items-center text-sm text-white">
+                                            <span>
+                                                Number: {ticket.selectedNumbers}
+                                            </span>
+                                            <span className="font-semibold ">Price: ${ticket.raffle.ticketPrice}</span>
                                         </div>
                                     </div>
                                 ))}

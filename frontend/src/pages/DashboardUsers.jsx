@@ -15,6 +15,12 @@ function DashboardUsers() {
     const [modalData, setModalData] = useState({ userIdToDelete: null, viewUserData: null });
     const [users, setUsers] = useState([]);
     const [formData, setFormData] = useState({ new: {}, update: {} });
+    const [errors, setErrors] = useState({
+        username: '',
+        password: '',
+        role: '',
+        balance: ''
+    });
 
     // Fetch users from API
     const fetchUsers = useCallback(async () => {
@@ -31,9 +37,45 @@ function DashboardUsers() {
         }
     }, []);
 
+    // Validation function
+    const validateUser = (user, isEdit = false) => {
+        const errors = {};
+
+        // Username Validation
+        if (!user.username || user.username.trim() === '') {
+            errors.username = "Username is required";
+        } else if (user.username.length < 3) {
+            errors.username = "Username must be at least 3 characters long";
+        }
+
+        // Password Validation (only for new users)
+        if (!isEdit) {
+            if (!user.password || user.password.trim() === '') {
+                errors.password = "Password is required";
+            } else if (user.password.length < 4) {
+                errors.password = "Password must be at least 4 characters long";
+            }
+        }
+
+        // Role Validation
+        if (!user.role || user.role.trim() === '') {
+            errors.role = "Role is required";
+        }
+
+        // Balance Validation
+        if (!user.balance) {
+            errors.balance = "Balance is required";
+        } else if (isNaN(user.balance) || parseFloat(user.balance) < 0) {
+            errors.balance = "Balance must be a valid positive number";
+        }
+
+        return errors;
+    };
+
     // Handle modal state
     const toggleModal = (type, isOpen, data = null) => {
         setIsModalOpen((prev) => ({ ...prev, [type]: isOpen }));
+        setErrors({}); // Clear errors when modal is toggled
         if (type === 'delete') {
             setModalData((prev) => ({ ...prev, userIdToDelete: data }));
         } else if (type === 'viewUser') {
@@ -46,6 +88,8 @@ function DashboardUsers() {
     const handleInputChange = (e, type) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [type]: { ...prev[type], [name]: value } }));
+        // Clear error when user starts typing
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     // Handle user deletion
@@ -71,6 +115,14 @@ function DashboardUsers() {
     const handleUpdateUser = async () => {
         const { viewUserData } = modalData;
         const { update } = formData;
+
+        // Validate form
+        const validationErrors = validateUser(update, true);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
         if (!viewUserData) return;
         setLoading(true);
         try {
@@ -78,14 +130,14 @@ function DashboardUsers() {
             if (response.success) {
                 toast.success('User updated successfully');
                 fetchUsers();
-            }
-            else {
+                toggleModal('viewUser', false);
+            } else {
                 toast.error(response.message);
             }
         } catch (error) {
+            toast.error('Failed to update user');
             console.error('Error updating user:', error);
         } finally {
-            toggleModal('viewUser', false);
             setLoading(false);
         }
     };
@@ -93,21 +145,28 @@ function DashboardUsers() {
     // Handle new user creation
     const handleAddUser = async () => {
         const { new: newUser } = formData;
+
+        // Validate form
+        const validationErrors = validateUser(newUser);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await createUser(newUser);
             if (response.success) {
                 toast.success('User added successfully');
                 fetchUsers();
-            }
-            else {
+                toggleModal('addUser', false);
+            } else {
                 toast.error(response.message);
             }
         } catch (error) {
-            toast.error('Failed to add user', error);
+            toast.error('Failed to add user');
             console.error('Error adding user:', error);
         } finally {
-            toggleModal('addUser', false);
             setLoading(false);
         }
     };
@@ -149,19 +208,21 @@ function DashboardUsers() {
                             title={`User Created On ${new Date(modalData.viewUserData.createdAt).toLocaleDateString('in-ID')}`}
                             width="max-w-3xl"
                         >
-                            <div className="grid grid-cols-2 gap-5">
-                                {['username', 'role', 'balance'].map((field) => (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                {['username', 'password', 'role', 'balance'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
                                         <span className="font-semibold">
                                             {field.charAt(0).toUpperCase() + field.slice(1)}
                                         </span>
                                         <input
-                                            // readOnly={formData.update["role"] === "admin"}
                                             className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                             name={field}
                                             value={formData.update[field] || ''}
                                             onChange={(e) => handleInputChange(e, 'update')}
                                         />
+                                        {errors[field] && (
+                                            <span className="text-red-500 text-sm">{errors[field]}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -174,16 +235,21 @@ function DashboardUsers() {
                     {/* Add New User Modal */}
                     {isModalOpen.addUser && (
                         <Modal onClose={() => toggleModal('addUser', false)} title="Add New User" width="max-w-3xl">
-                            <div className="grid grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 {['username', 'password', 'role', 'balance'].map((field) => (
                                     <div key={field} className="flex flex-col gap-2">
+                                        <span className="font-semibold">
+                                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                                        </span>
                                         <input
                                             className="w-full dark:text-gray-300 bg-white dark:bg-gray-800 focus:ring-transparent placeholder-gray-400 dark:placeholder-gray-500 appearance-none py-3 border dark:border-gray-400 rounded-lg"
                                             name={field}
                                             value={formData.new[field] || ''}
-                                            placeholder={field}
                                             onChange={(e) => handleInputChange(e, 'new')}
                                         />
+                                        {errors[field] && (
+                                            <span className="text-red-500 text-sm">{errors[field]}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
